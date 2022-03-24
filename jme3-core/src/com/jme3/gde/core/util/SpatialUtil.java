@@ -228,7 +228,7 @@ public class SpatialUtil {
                 //will always return same class type as 2nd param, so casting is safe
                 Geometry spat = (Geometry) findTaggedSpatial(root, geom);
                 if (spat != null && spat.getMaterial() != null && geom.getMaterial() != null) {
-                    spat.setMaterial(geom.getMaterial());
+                    spat.setMaterial(geom.getMaterial().clone());
                     logger.log(LogLevel.USERINFO, "Updated material for Geometry {0}", geom.getName());
                 }
             }
@@ -256,8 +256,8 @@ public class SpatialUtil {
                 logger.log(Level.INFO, "Attaching {0} to {1} in root {2} to add leaf {3}", new Object[]{s, other, root, leaf});
                 //set original path data to leaf and new parents
                 for (Spatial spt = leaf; spt != parent; spt = spt.getParent()) {
-                    if(spt == null){
-                        return; // this is to avoid a crash when changing names of meshes externally
+                    if (spt == null) {
+                        return;     // this is to avoid a crash when changing names of meshes externally
                     }
                     spt.setUserData(ORIGINAL_NAME, spt.getName());
                     spt.setUserData(ORIGINAL_PATH, getSpatialPath(spt));
