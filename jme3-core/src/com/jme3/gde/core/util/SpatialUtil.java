@@ -220,6 +220,12 @@ public class SpatialUtil {
         });
     }
 
+    /**
+     * Updates material of existing objects from an original file
+     *
+     * @param root
+     * @param original
+     */
     public static void updateMaterialDataFromOriginal(final Spatial root, final Spatial original) {
         //loop through original to also find new geometry
         original.depthFirstTraversal(new SceneGraphVisitorAdapter() {
@@ -228,8 +234,10 @@ public class SpatialUtil {
                 //will always return same class type as 2nd param, so casting is safe
                 Geometry spat = (Geometry) findTaggedSpatial(root, geom);
                 if (spat != null && spat.getMaterial() != null && geom.getMaterial() != null) {
-                    spat.setMaterial(geom.getMaterial().clone());
-                    logger.log(LogLevel.USERINFO, "Updated material for Geometry {0}", geom.getName());
+                    if (!spat.getMaterial().equals(geom.getMaterial())) {
+                        spat.setMaterial(geom.getMaterial().clone());
+                        logger.log(LogLevel.USERINFO, "Updated material for Geometry {0}", geom.getName());
+                    }
                 }
             }
         });
@@ -257,7 +265,8 @@ public class SpatialUtil {
                 //set original path data to leaf and new parents
                 for (Spatial spt = leaf; spt != parent; spt = spt.getParent()) {
                     if (spt == null) {
-                        return;     // this is to avoid a crash when changing names of meshes externally
+                        // this is to avoid a crash when changing mesh names
+                        return;
                     }
                     spt.setUserData(ORIGINAL_NAME, spt.getName());
                     spt.setUserData(ORIGINAL_PATH, getSpatialPath(spt));
