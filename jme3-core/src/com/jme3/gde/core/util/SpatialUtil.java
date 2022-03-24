@@ -221,12 +221,13 @@ public class SpatialUtil {
     }
 
     /**
-     * Updates material of existing objects from an original file
+     * Updates material of existing objects from an original file.
      *
      * @param root
      * @param original
      */
-    public static void updateMaterialDataFromOriginal(final Spatial root, final Spatial original) {
+    public static void updateMaterialDataFromOriginal(final Spatial root,
+                                                      final Spatial original) {
         //loop through original to also find new geometry
         original.depthFirstTraversal(new SceneGraphVisitorAdapter() {
             @Override
@@ -237,7 +238,9 @@ public class SpatialUtil {
                         geom.getMaterial() != null &&
                         !spat.getMaterial().equals(geom.getMaterial())) {
                     spat.setMaterial(geom.getMaterial().clone());
-                    logger.log(LogLevel.USERINFO, "Updated material for Geometry {0}", geom.getName());
+                    logger.log(LogLevel.USERINFO,
+                            "Updated material for Geometry {0}", geom.getName()
+                    );
                 }
             }
         });
