@@ -234,9 +234,9 @@ public class SpatialUtil {
             public void visit(Geometry geom) {
                 //will always return same class type as 2nd param, so casting is safe
                 Geometry spat = (Geometry) findTaggedSpatial(root, geom);
-                if (spat != null && spat.getMaterial() != null &&
-                        geom.getMaterial() != null &&
-                        !spat.getMaterial().equals(geom.getMaterial())) {
+                if (spat != null && spat.getMaterial() != null
+                        && geom.getMaterial() != null
+                        && !spat.getMaterial().equals(geom.getMaterial())) {
                     spat.setMaterial(geom.getMaterial().clone());
                     logger.log(LogLevel.USERINFO,
                             "Updated material for Geometry {0}", geom.getName()
