@@ -4,6 +4,8 @@
  */
 package com.jme3.gde.materials.dnd;
 
+import com.jme3.gde.core.dnd.AssetNameHolder;
+import com.jme3.gde.core.dnd.StringDataFlavor;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;

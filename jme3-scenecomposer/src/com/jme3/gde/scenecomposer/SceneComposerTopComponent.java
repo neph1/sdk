@@ -25,7 +25,9 @@ import com.jme3.gde.scenecomposer.tools.MoveTool;
 import com.jme3.gde.scenecomposer.tools.RotateTool;
 import com.jme3.gde.scenecomposer.tools.ScaleTool;
 import com.jme3.gde.scenecomposer.tools.SelectTool;
+import com.jme3.material.Material;
 import com.jme3.math.FastMath;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
@@ -1254,7 +1256,7 @@ private void jToggleSelectGeomActionPerformed(java.awt.event.ActionEvent evt) {/
             displayInfo("No scene opened!");
         }
     }
-
+    
     public void linkModel(AssetManager manager, String assetName) {
         if (editorController != null) {
             editorController.linkModel(manager, assetName, toolController.getCursorLocation());
@@ -1477,5 +1479,16 @@ private void jToggleSelectGeomActionPerformed(java.awt.event.ActionEvent evt) {/
         SwingUtilities.invokeLater(() -> {
             cursorPositionLabel.setText(location.toString());
         });
+    }
+    
+    public void applyMaterial(String assetName, Vector2f cursorPosition) {
+        ProjectAssetManager assetManager = toolController.getRootNode().getLookup().lookup(ProjectAssetManager.class);
+        Spatial spatial = SceneEditTool.pickWorldSpatial(camController.getCamera(), cursorPosition, toolController.getRootNode());
+        System.out.println("apply material to " + spatial);
+        if(spatial != null) {
+            Material material = assetManager.loadMaterial(assetName);
+            spatial.setMaterial(material);
+        }
+        
     }
 }

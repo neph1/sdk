@@ -4,40 +4,35 @@
  */
 package com.jme3.gde.assetbrowser.widgets;
 
-import com.jme3.gde.assetbrowser.dnd.DraggableMouseListener;
+import com.jme3.gde.assetbrowser.dnd.AssetPreviewWidgetMouseListener;
 import com.jme3.gde.materials.dnd.TextureMoveHandler;
 import com.jme3.gde.core.icons.IconList;
 import com.jme3.gde.core.scene.PreviewRequest;
 import com.jme3.gde.core.scene.SceneListener;
 import com.jme3.gde.core.scene.SceneRequest;
-import com.jme3.gde.materials.dnd.AssetNameHolder;
+import com.jme3.gde.core.dnd.AssetNameHolder;
 import javax.swing.Icon;
 
 /**
- *
+ * Displays an asset as an image in the AssetBrowser
  * @author rickard
  */
 public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListener, AssetNameHolder {
 
-    private PreviewInteractionListener listener;
     /**
      * Creates new form AssetPreviewWidget
      */
     public AssetPreviewWidget() {
         initComponents();
-        
         setTransferHandler(TextureMoveHandler.createFor(this));
-        addMouseListener(new DraggableMouseListener());
     }
     
     public AssetPreviewWidget(PreviewInteractionListener listener) {
         this();
-        this.listener = listener;
-        
+        addMouseListener(new AssetPreviewWidgetMouseListener(this, listener));
     }
 
     public void setPreviewImage(Icon icon) {
-        System.out.println("setPreviewImage " + this.hashCode() + " " + getParent());
         assetPreviewLabel.setIcon(icon);
     }
 
@@ -62,11 +57,6 @@ public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListe
         assetPreviewLabel = new javax.swing.JLabel();
 
         setPreferredSize(new java.awt.Dimension(170, 180));
-        addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                assetMouseClicked(evt);
-            }
-        });
 
         org.openide.awt.Mnemonics.setLocalizedText(assetNameLabel, org.openide.util.NbBundle.getMessage(AssetPreviewWidget.class, "AssetPreviewWidget.assetNameLabel.text")); // NOI18N
 
@@ -97,14 +87,6 @@ public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListe
         assetNameLabel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(AssetPreviewWidget.class, "AssetPreviewWidget.assetNameLabel.AccessibleContext.accessibleName")); // NOI18N
         assetPreviewLabel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(AssetPreviewWidget.class, "AssetPreviewWidget.assetPreviewLabel.AccessibleContext.accessibleName")); // NOI18N
     }// </editor-fold>//GEN-END:initComponents
-
-    private void assetMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_assetMouseClicked
-        if (evt.getClickCount() == 2 && !evt.isConsumed()) {
-            evt.consume();
-            System.out.println("double click");
-            listener.onDoubleClick(this);
-        }
-    }//GEN-LAST:event_assetMouseClicked
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -144,5 +126,6 @@ public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListe
     public void setAssetName(String name) {
         assetNameLabel.setText(name);
     }
+    
 
 }

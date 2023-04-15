@@ -37,7 +37,9 @@ import com.jme3.scene.Spatial;
 import java.awt.image.BufferedImage;
 
 /**
- *
+ * Used to render an image of a scene using SceneApplication. Used by 
+ * Material Editor and Shader Editor, for example.
+ * 
  * @author normenhansen
  */
 public class PreviewRequest {

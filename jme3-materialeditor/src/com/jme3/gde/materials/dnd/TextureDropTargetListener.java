@@ -4,6 +4,8 @@
  */
 package com.jme3.gde.materials.dnd;
 
+import com.jme3.gde.core.dnd.AssetNameHolder;
+import com.jme3.gde.core.dnd.StringDataFlavor;
 import com.jme3.gde.materials.multiview.widgets.TexturePanel;
 import java.awt.Cursor;
 import java.awt.datatransfer.DataFlavor;
@@ -19,14 +21,14 @@ import javax.swing.JComponent;
  *
  * @author rickard
  */
-public class TextureNameDropTargetListener implements DropTargetListener{
+public class TextureDropTargetListener implements DropTargetListener{
 
     private static final Cursor droppableCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     private static final Cursor notDroppableCursor = Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR);
     
     private final TexturePanel rootPanel;
 
-    public TextureNameDropTargetListener(TexturePanel rootPanel) {
+    public TextureDropTargetListener(TexturePanel rootPanel) {
         this.rootPanel = rootPanel;
     }
     
@@ -51,8 +53,6 @@ public class TextureNameDropTargetListener implements DropTargetListener{
 
     @Override
     public void drop(DropTargetDropEvent dtde) {
-        System.out.println("Step 5 of 7: The user dropped the panel. The drop(...) method will compare the drops location with other panels and reorder the panels accordingly.");
-        
         this.rootPanel.setCursor(Cursor.getDefaultCursor());
         
         DataFlavor dragAndDropPanelFlavor = null;

@@ -455,64 +455,85 @@ public class ProjectAssetManager extends DesktopAssetManager {
         return input;
     }
 
-    @Deprecated
-    public AssetManager getManager() {
-        return this;
-    }
-
     public String[] getModels() {
-        return filesWithSuffix("j3o");
+        return getModels(true);
     }
 
+    public String[] getModels(boolean includeDependencies) {
+        return filesWithSuffix("j3o", includeDependencies);
+    }
+    
     public String[] getMaterials() {
-        return filesWithSuffix("j3m");
+        return getMaterials(true);
     }
 
+    public String[] getMaterials(boolean includeDependencies) {
+        return filesWithSuffix("j3m", includeDependencies);
+    }
+    
     public String[] getSounds() {
-        ArrayList<String> list = new ArrayList<String>();
-        list.addAll(collectFilesWithSuffix("wav"));
-        list.addAll(collectFilesWithSuffix("ogg"));
-        return list.toArray(new String[list.size()]);
+        return getSounds(true);
     }
 
+    public String[] getSounds(boolean includeDependencies) {
+        ArrayList<String> list = new ArrayList<>();
+        list.addAll(collectFilesWithSuffix("wav", includeDependencies));
+        list.addAll(collectFilesWithSuffix("ogg", includeDependencies));
+        return list.toArray(String[]::new);
+    }
+    
     public String[] getTextures() {
-        ArrayList<String> list = new ArrayList<String>();
-        list.addAll(collectFilesWithSuffix("jpg"));
-        list.addAll(collectFilesWithSuffix("jpeg"));
-        list.addAll(collectFilesWithSuffix("gif"));
-        list.addAll(collectFilesWithSuffix("png"));
-        list.addAll(collectFilesWithSuffix("dds"));
-        list.addAll(collectFilesWithSuffix("pfm"));
-        list.addAll(collectFilesWithSuffix("hdr"));
-        list.addAll(collectFilesWithSuffix("tga"));
-        return list.toArray(new String[list.size()]);
+        return getTextures(true);
     }
 
+    public String[] getTextures(boolean includeDependencies) {
+        ArrayList<String> list = new ArrayList<>();
+        list.addAll(collectFilesWithSuffix("jpg", includeDependencies));
+        list.addAll(collectFilesWithSuffix("jpeg", includeDependencies));
+        list.addAll(collectFilesWithSuffix("gif", includeDependencies));
+        list.addAll(collectFilesWithSuffix("png", includeDependencies));
+        list.addAll(collectFilesWithSuffix("dds", includeDependencies));
+        list.addAll(collectFilesWithSuffix("pfm", includeDependencies));
+        list.addAll(collectFilesWithSuffix("hdr", includeDependencies));
+        list.addAll(collectFilesWithSuffix("tga", includeDependencies));
+        return list.toArray(String[]::new);
+    }
+    
     public String[] getMatDefs() {
-        return filesWithSuffix("j3md");
+        return getMatDefs(true);
+    }
+
+    public String[] getMatDefs(boolean includeDependencies) {
+        return filesWithSuffix("j3md", includeDependencies);
     }
 
     public List<String>  getProjectShaderNodeDefs() {       
-        return collectProjectFilesWithSuffix("j3sn", new LinkedList<String>());
+        return collectProjectFilesWithSuffix("j3sn", new LinkedList<>());
     }
 
     public  List<String> getDependenciesShaderNodeDefs() {        
-        return collectDependenciesFilesWithSuffix("j3sn", new LinkedList<String>());
+        return collectDependenciesFilesWithSuffix("j3sn", new LinkedList<>());
     }
-
+    
     public String[] getAssetsWithSuffix(String string) {
-        return filesWithSuffix(string);
+        return getAssetsWithSuffix(string, true);
     }
 
-    private String[] filesWithSuffix(String string) {
-        List<String> list = collectFilesWithSuffix(string);
-        return list.toArray(new String[list.size()]);
+    public String[] getAssetsWithSuffix(String string, boolean includeDependencies) {
+        return filesWithSuffix(string, includeDependencies);
     }
 
-    private List<String> collectFilesWithSuffix(String suffix) {
-        List<String> list = new LinkedList<String>();
+    private String[] filesWithSuffix(String string, boolean includeDependencies) {
+        List<String> list = collectFilesWithSuffix(string, includeDependencies);
+        return list.toArray(String[]::new);
+    }
+
+    private List<String> collectFilesWithSuffix(String suffix, boolean includeDependencies) {
+        List<String> list = new LinkedList<>();
         collectProjectFilesWithSuffix(suffix, list);
-        collectDependenciesFilesWithSuffix(suffix, list);
+        if(includeDependencies) {
+            collectDependenciesFilesWithSuffix(suffix, list);
+        }
         return list;
     }
 

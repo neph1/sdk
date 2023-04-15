@@ -15,9 +15,9 @@ import com.jme3.gde.core.assets.ProjectAssetManager;
 import com.jme3.gde.core.properties.TexturePropertyEditor;
 import com.jme3.gde.core.properties.preview.TexturePreview;
 import com.jme3.gde.materials.MaterialProperty;
-import com.jme3.gde.materials.dnd.AssetNameHolder;
+import com.jme3.gde.core.dnd.AssetNameHolder;
 import com.jme3.gde.materials.dnd.TextureMoveHandler;
-import com.jme3.gde.materials.dnd.TextureNameDropTargetListener;
+import com.jme3.gde.materials.dnd.TextureDropTargetListener;
 import com.jme3.gde.materials.multiview.MaterialEditorTopComponent;
 import com.jme3.gde.materials.multiview.widgets.icons.Icons;
 import java.awt.Component;
@@ -53,7 +53,7 @@ public class TexturePanel extends MaterialPropertyWidget implements AssetNameHol
         initComponents();
         
         setTransferHandler(TextureMoveHandler.createFor(this));
-        setDropTarget(new DropTarget(this, new TextureNameDropTargetListener(this)));
+        setDropTarget(new DropTarget(this, new TextureDropTargetListener(this)));
     }
 
     private void displayPreview() {
@@ -338,8 +338,20 @@ public class TexturePanel extends MaterialPropertyWidget implements AssetNameHol
 
     @Override
     public void setAssetName(String name) {
-        textureName = name;
-        displayPreview();
-        fireChanged();
+        property.setValue("");
+        java.awt.EventQueue.invokeLater(() -> {
+            if(name.startsWith("\"")){
+                textureName = name;
+            } else {
+                textureName = "\"" + name + "\"";
+            }
+            property.setValue(textureName);
+            displayPreview();
+            updateFlipRepeat();
+            java.awt.EventQueue.invokeLater(() -> {
+                fireChanged();
+            });
+        });
+        
     }
 }
