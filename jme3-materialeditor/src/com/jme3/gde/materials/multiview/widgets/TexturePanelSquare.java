@@ -37,8 +37,16 @@ import com.jme3.gde.core.assets.ProjectAssetManager;
 import com.jme3.gde.core.properties.TexturePropertyEditor;
 import com.jme3.gde.core.properties.preview.TexturePreview;
 import com.jme3.gde.materials.MaterialProperty;
+import com.jme3.gde.materials.dnd.AssetNameHolder;
+import com.jme3.gde.materials.dnd.TextureMoveHandler;
+import com.jme3.gde.materials.dnd.TextureNameDropTargetListener;
 import com.jme3.gde.materials.multiview.MaterialEditorTopComponent;
 import java.awt.Component;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -49,7 +57,7 @@ import java.util.logging.Logger;
  * A more compact texture panel designed for the shader node editor.
  * @author rickard
  */
-public class TexturePanelSquare extends MaterialPropertyWidget {
+public class TexturePanelSquare extends MaterialPropertyWidget implements AssetNameHolder {
 
     private final TexturePropertyEditor editor;
     private final ProjectAssetManager manager;
@@ -99,6 +107,8 @@ public class TexturePanelSquare extends MaterialPropertyWidget {
             public void mouseExited(MouseEvent e) {
             }
         });
+//        setTransferHandler(TextureMoveHandler.createFor(this));
+//        setDropTarget(new DropTarget(this, new TextureNameDropTargetListener(this)));
     }
 
     private void displayPreview() {
@@ -305,4 +315,14 @@ public class TexturePanelSquare extends MaterialPropertyWidget {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel texturePreview;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public String getAssetName() {
+        return textureName;
+    }
+
+    @Override
+    public void setAssetName(String name) {
+        textureName = name;
+    }
 }
