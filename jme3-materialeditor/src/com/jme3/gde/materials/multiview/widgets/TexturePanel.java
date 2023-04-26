@@ -16,17 +16,15 @@ import com.jme3.gde.core.properties.TexturePropertyEditor;
 import com.jme3.gde.core.properties.preview.TexturePreview;
 import com.jme3.gde.materials.MaterialProperty;
 import com.jme3.gde.core.dnd.AssetNameHolder;
-import com.jme3.gde.materials.dnd.TextureMoveHandler;
+import com.jme3.gde.core.dnd.TextureDataFlavor;
+import com.jme3.gde.core.dnd.AssetGrabHandler;
 import com.jme3.gde.materials.dnd.TextureDropTargetListener;
 import com.jme3.gde.materials.multiview.MaterialEditorTopComponent;
 import com.jme3.gde.materials.multiview.widgets.icons.Icons;
+import com.jme3.texture.Texture;
 import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.dnd.DropTarget;
-import java.awt.dnd.DropTargetDragEvent;
-import java.awt.dnd.DropTargetDropEvent;
-import java.awt.dnd.DropTargetEvent;
-import java.awt.dnd.DropTargetListener;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.logging.Level;
@@ -52,7 +50,7 @@ public class TexturePanel extends MaterialPropertyWidget implements AssetNameHol
         editor = new TexturePropertyEditor(manager);
         initComponents();
         
-        setTransferHandler(TextureMoveHandler.createFor(this));
+        setTransferHandler(new AssetGrabHandler<>(this, new TextureDataFlavor()));
         setDropTarget(new DropTarget(this, new TextureDropTargetListener(this)));
     }
 

@@ -7,8 +7,7 @@ package com.jme3.gde.assetbrowser.dnd;
 import com.jme3.gde.assetbrowser.widgets.AssetPreviewWidget;
 import com.jme3.gde.assetbrowser.widgets.PreviewInteractionListener;
 import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.swing.TransferHandler;
 
 /**
@@ -32,13 +31,15 @@ public class AssetPreviewWidgetMouseListener extends MouseAdapter {
     public void mouseClicked(java.awt.event.MouseEvent evt) {                                   
         if (evt.getClickCount() == 2) {
             evt.consume();
-            System.out.println("double click");
-            listener.onDoubleClick(previewWidget);
+            if(previewWidget.isEditable()) {
+                listener.openAsset(previewWidget);
+            } else {
+                JOptionPane.showMessageDialog(null, "Project dependencies can't be edited");
+            }
         }
     }                                  
 
-    public void mousePressed(java.awt.event.MouseEvent evt) {                                  
-        System.out.println("mouse pressed");
+    public void mousePressed(java.awt.event.MouseEvent evt) {   
         pressed = true;
         
     }                                 
@@ -49,12 +50,10 @@ public class AssetPreviewWidgetMouseListener extends MouseAdapter {
         moved = false;
     }                                  
 
-    public void mouseMoved(java.awt.event.MouseEvent evt) {                                
-        
+    public void mouseMoved(java.awt.event.MouseEvent evt) {     
     }                               
 
-    public void mouseDragged(java.awt.event.MouseEvent evt) {                                  
-        System.out.println("mouse drasgged");
+    public void mouseDragged(java.awt.event.MouseEvent evt) {
         if(pressed) {
             moved = true;
             TransferHandler handler = previewWidget.getTransferHandler();

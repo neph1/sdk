@@ -2,10 +2,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.jme3.gde.materials.dnd;
+package com.jme3.gde.core.dnd;
 
-import com.jme3.gde.core.dnd.AssetNameHolder;
-import com.jme3.gde.core.dnd.StringDataFlavor;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -19,25 +17,33 @@ import javax.swing.TransferHandler.TransferSupport;
  * https://stackoverflow.com/questions/23225958/dragging-between-two-components-in-swing
  *
  * @author rickard
+ * @param <T>
  */
-public class TextureMoveHandler extends TransferHandler {
+public class AssetGrabHandler<T extends DataFlavor> extends TransferHandler {
 
+    //private T t;
     private static final long serialVersionUID = 1L;
-    private DataFlavor stringFlavor = new StringDataFlavor();
+    private DataFlavor stringFlavor;
     // We'll be moving the strings of this list
 //        private AssetPreviewWidget preview;
     private AssetNameHolder origin;
     private String content;
 
+    public AssetGrabHandler(AssetNameHolder origin, T flavor) {
+        this.content = origin.getAssetName();
+        this.origin = origin;
+        stringFlavor = flavor;
+    }
+    
     // Clients should use a static factory method to instantiate the handler
-        private TextureMoveHandler() {}
+        private AssetGrabHandler() {}
 
-    public TextureMoveHandler(String name) {
+    public AssetGrabHandler(String name) {
         this.content = name;
     }
 
-        public static TextureMoveHandler createFor(AssetNameHolder origin) {
-            TextureMoveHandler handler = new TextureMoveHandler(origin.getAssetName());
+        public static AssetGrabHandler createFor(AssetNameHolder origin, Class c) {
+            AssetGrabHandler handler = new AssetGrabHandler(origin.getAssetName());
             handler.origin = origin;
             return handler;
         }
@@ -71,13 +77,13 @@ public class TextureMoveHandler extends TransferHandler {
 
     @Override
     public Transferable createTransferable(JComponent source) {
-        System.out.println("createTransferable " + content);
+        System.out.println("createTransferable " + content + " t " + stringFlavor);
         // We need the values from the list as an object array, otherwise the data flavor won't match in importData
-        return new TextureAssetTransferable(origin);
+        return new AssetTransferable(origin);
     }
 
     public void setContent(String name) {
         this.content = name;
     }
-
+    
 }

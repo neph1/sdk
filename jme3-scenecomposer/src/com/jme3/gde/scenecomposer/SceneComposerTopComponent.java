@@ -9,6 +9,9 @@ import com.jme3.effect.ParticleEmitter;
 import com.jme3.gde.core.assets.AssetDataObject;
 import com.jme3.gde.core.assets.ProjectAssetManager;
 import com.jme3.gde.core.assets.SpatialAssetDataObject;
+import com.jme3.gde.core.dnd.AssetGrabHandler;
+import com.jme3.gde.core.dnd.AssetNameHolder;
+import com.jme3.gde.core.dnd.MaterialDataFlavor;
 import com.jme3.gde.core.scene.PreviewRequest;
 import com.jme3.gde.core.scene.SceneApplication;
 import com.jme3.gde.core.scene.SceneListener;
@@ -93,6 +96,7 @@ public final class SceneComposerTopComponent extends TopComponent implements
         setToolTipText(NbBundle.getMessage(SceneComposerTopComponent.class, "HINT_SceneComposerTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         result = Utilities.actionsGlobalContext().lookupResult(AbstractSceneExplorerNode.class);
+        
     }
 
     /**
@@ -1480,15 +1484,5 @@ private void jToggleSelectGeomActionPerformed(java.awt.event.ActionEvent evt) {/
             cursorPositionLabel.setText(location.toString());
         });
     }
-    
-    public void applyMaterial(String assetName, Vector2f cursorPosition) {
-        ProjectAssetManager assetManager = toolController.getRootNode().getLookup().lookup(ProjectAssetManager.class);
-        Spatial spatial = SceneEditTool.pickWorldSpatial(camController.getCamera(), cursorPosition, toolController.getRootNode());
-        System.out.println("apply material to " + spatial);
-        if(spatial != null) {
-            Material material = assetManager.loadMaterial(assetName);
-            spatial.setMaterial(material);
-        }
-        
-    }
+  
 }

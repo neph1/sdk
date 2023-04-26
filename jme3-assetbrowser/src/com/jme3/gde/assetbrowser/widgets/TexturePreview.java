@@ -4,6 +4,9 @@
  */
 package com.jme3.gde.assetbrowser.widgets;
 
+import com.jme3.gde.core.dnd.TextureDataFlavor;
+import com.jme3.gde.core.dnd.AssetGrabHandler;
+
 /**
  *
  * @author rickard
@@ -12,6 +15,7 @@ public class TexturePreview extends AssetPreviewWidget{
 
     public TexturePreview(PreviewInteractionListener listener) {
         super(listener);
+        setTransferHandler(new AssetGrabHandler<>(this, new TextureDataFlavor()));
     }
     
 }

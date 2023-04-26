@@ -10,6 +10,9 @@ package com.jme3.gde.assetbrowser.widgets;
  */
 public interface PreviewInteractionListener {
     
-    void onDoubleClick(AssetPreviewWidget widget);
+    void openAsset(AssetPreviewWidget widget);
     
+    void refreshPreview(AssetPreviewWidget widget);
+    
+    void deleteAsset(AssetPreviewWidget widget);
 }

@@ -4,6 +4,7 @@
  */
 package com.jme3.gde.assetbrowser;
 
+import com.jme3.asset.MaterialKey;
 import com.jme3.gde.assetbrowser.widgets.AssetPreviewWidget;
 import com.jme3.gde.core.assets.ProjectAssetManager;
 import com.jme3.gde.core.editor.icons.Icons;
@@ -54,29 +55,11 @@ public class PreviewUtil {
     }
 
     public Icon getOrCreateTexturePreview(String asset) {
-        final var assetPath = assetManager.getAbsoluteAssetPath(asset);
-        
-        FileTime assetModificationTime = getAssetModificationTime(assetPath);
-        
-        File previewFile = loadPreviewFile(assetManager, asset.split("\\.")[0]);
-        
-        if(previewFile != null && assetModificationTime != null) {
-            Path previewPath = previewFile.toPath();
-            try {
-                BasicFileAttributes previewAttributes = Files.readAttributes(
-                        previewPath, BasicFileAttributes.class);
-                FileTime previewCreationTime = previewAttributes.creationTime();
-                
-                if(previewCreationTime.compareTo(assetModificationTime) > 0) {
-                    System.out.println("existing preview OK " + previewFile);
-                    return new ImageIcon(ImageIO.read(previewFile));
-                }
-                
-            } catch (IOException ex) {
-                Exceptions.printStackTrace(ex);
-            }
+        final var icon = tryGetPreview(asset);
+        if(icon != null) {
+            return icon;
         }
-        System.out.println("creating preview " + previewFile);
+        System.out.println("creating preview ");
         Texture texture = assetManager.loadTexture(asset);
         Image image = texture.getImage();
 
@@ -90,36 +73,9 @@ public class PreviewUtil {
     }
 
     public Icon getOrCreateMaterialPreview(String asset, AssetPreviewWidget widget) {
-        final var assetPath = assetManager.getAbsoluteAssetPath(asset);
-        
-        FileTime assetModificationTime = getAssetModificationTime(assetPath);
-        
-        File previewFile = loadPreviewFile(assetManager, asset.split("\\.")[0]);
-        
-        if(previewFile != null && assetModificationTime != null) {
-            Path previewPath = previewFile.toPath();
-            try {
-                BasicFileAttributes previewAttributes = Files.readAttributes(
-                        previewPath, BasicFileAttributes.class);
-                FileTime previewCreationTime = previewAttributes.creationTime();
-                
-                if(previewCreationTime.compareTo(assetModificationTime) > 0) {
-                    System.out.println("existing preview OK " + previewFile);
-                    
-                    BufferedImage image = ImageIO.read(previewFile);
-                    if(image == null) {
-                        System.out.println("previewFile is null " + previewFile);
-                        return new ImageIcon();
-                    }
-                    return new ImageIcon(image);
-                } else {
-                    System.out.println("creation time before modification time" + previewFile);
-                }
-                
-            } catch (IOException ex) {
-                System.out.println("exception when loading " + previewFile);
-                Exceptions.printStackTrace(ex);
-            }
+        final var icon = tryGetPreview(asset);
+        if(icon != null) {
+            return icon;
         }
         
         Material mat = assetManager.loadMaterial(asset);
@@ -146,7 +102,7 @@ public class PreviewUtil {
         return IconList.asset;
     }
     
-    public Icon getOrCreateModelPreview(String asset, AssetPreviewWidget widget) {
+    private Icon tryGetPreview(String asset) {
         final var assetPath = assetManager.getAbsoluteAssetPath(asset);
         
         FileTime assetModificationTime = getAssetModificationTime(assetPath);
@@ -161,19 +117,25 @@ public class PreviewUtil {
                 FileTime previewCreationTime = previewAttributes.creationTime();
                 
                 if(previewCreationTime.compareTo(assetModificationTime) > 0) {
-                    
+                    System.out.println("existing preview OK " + previewFile);
                     BufferedImage image = ImageIO.read(previewFile);
-                    if(image == null) {
-                        return new ImageIcon();
+                    if(image != null) {
+                        return new ImageIcon(image);
                     }
-                    return new ImageIcon(image);
-                } else {
-                    System.out.println("creation time before modification time" + previewFile);
+                    System.out.println("previewFile is null " + previewFile);
                 }
                 
             } catch (IOException ex) {
                 Exceptions.printStackTrace(ex);
             }
+        }
+        return null;
+    }
+    
+    public Icon getOrCreateModelPreview(String asset, AssetPreviewWidget widget) {
+        final var icon = tryGetPreview(asset);
+        if(icon != null) {
+            return icon;
         }
         
         Material unshaded = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");

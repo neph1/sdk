@@ -4,7 +4,6 @@
  */
 package com.jme3.gde.assetbrowser;
 
-import com.jme3.gde.materials.MaterialPreviewOpenSupport;
 import com.jme3.gde.assetbrowser.widgets.AssetPreviewWidget;
 import com.jme3.gde.assetbrowser.widgets.MaterialPreview;
 import com.jme3.gde.assetbrowser.widgets.ModelPreview;
@@ -13,12 +12,14 @@ import com.jme3.gde.assetbrowser.widgets.TexturePreview;
 import com.jme3.gde.core.assets.ProjectAssetManager;
 import com.jme3.gde.core.util.ProjectSelection;
 import com.jme3.gde.materials.JMEMaterialDataObject;
+import com.jme3.gde.materials.multiview.MaterialOpenSupport;
 import com.jme3.gde.textureeditor.JmeTextureDataObject;
 import com.jme3.gde.textureeditor.OpenTexture;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
@@ -27,8 +28,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.prefs.Preferences;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 import javax.swing.JOptionPane;
 import javax.swing.tree.DefaultMutableTreeNode;
 import org.openide.filesystems.FileObject;
@@ -43,40 +43,33 @@ import org.openide.util.Exceptions;
 public class AssetBrowser extends javax.swing.JPanel implements PreviewInteractionListener {
 
     private ProjectAssetManager assetManager;
-//    private final Preferences prefs;
     private PreviewUtil previewUtil;
+    private String projectName;
 
     private int lastGridColumns = 0;
     private int lastGridRows = 0;
     private String lastFilter;
+    
+    private int sizeX = 170;
+    private int sizeY = 180;
 
     /**
      * Creates new form AssetBrowser
      */
     public AssetBrowser() {
-//        this.editor = editor;
-//        prefs = Preferences.userNodeForPackage(this.getClass());
-
-
-
+        
         initComponents();
-//        jPanel1.setLayout(new GridLayout(2, 0, 3, 3));
-
+        
         ComponentListener componentListener = new ComponentListener() {
             @Override
             public void componentResized(ComponentEvent e) {
-                Dimension size = e.getComponent().getSize();
-                System.out.println("component resized " + size);
+//                Dimension size = e.getComponent().getSize();
+//                System.out.println("component resized " + size);
                 setSize(getParent().getSize());
                 setPreferredSize(getParent().getSize());
-
-                //jScrollPane1.setMaximumSize(getParent().getSize());
-                //jPanel1.setMaximumSize(getParent().getSize());
-//                updateGrid(size.getSize());
                 java.awt.EventQueue.invokeLater(() -> {
                     loadAssets(filterField.getText().toLowerCase());
                 });
-//                jScrollPane1.setVerticalScrollBarPolicy();
             }
 
             @Override
@@ -96,129 +89,73 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
         addComponentListener(componentListener);
     }
     
-    private void onProjectSelected() {
-    }
-
-//    @Override
-//    public Dimension getMaximumSize() {
-//        return getParent().getSize(); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
-//    }
     private void loadAssets(String filter) {
         if (assetManager == null) {
             return;
         }
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Root");
-        // use while loop to make you easer to switch to your result set.
-
-        GridBagConstraints c = new GridBagConstraints();
+        GridBagConstraints constraints = new GridBagConstraints();
+        Dimension size = jPanel1.getSize();
         
-        Dimension size = getSize();
-        int rows = Math.max(size.height / 180, 1);
-        int numAssets = Math.max(assetManager.getTextures().length, 1);
+        
+        int rows = Math.max(size.height / sizeY, 1);
+        
+        final var textures = Arrays.stream(assetManager.getTextures()).filter(s -> filter.isEmpty() || s.contains(filter)).collect(Collectors.toList());
+        final var materials = Arrays.stream(assetManager.getMaterials()).filter(s -> filter.isEmpty() || s.contains(filter)).collect(Collectors.toList());
+        final var models = Arrays.stream(assetManager.getModels()).filter(s -> filter.isEmpty() || s.contains(filter)).collect(Collectors.toList());
+        int numAssets = textures.size() + materials.size() + models.size();
         int columns = numAssets / rows;
-//        c.gridheight = rows;
-//        c.gridwidth = columns;
-        c.fill = GridBagConstraints.NONE;
-        c.weightx = 1f / columns;
-        c.weighty = 1f / rows;
-        c.gridx = 180;
-        c.gridy = 180;
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.gridx = sizeX;
+        constraints.gridy = sizeY;
+        
+        
+        
+        Dimension newSize = new Dimension(columns * sizeX, rows * sizeY);
+        System.out.println("old size " + size + " new size " + newSize);
         if (columns != lastGridColumns || rows != lastGridRows || !lastFilter.equals(filter)) {
             jPanel1.removeAll();
-            jPanel1.setSize(new Dimension(columns * 180, size.height));
-            jPanel1.setPreferredSize(new Dimension(columns * 180, size.height));
-            jPanel1.setMinimumSize(new Dimension(columns * 180, size.height));
+            jPanel1.setSize(newSize);
+            jPanel1.setPreferredSize(newSize);
             
             jPanel1.setLayout(new GridBagLayout());
-            int index = addAssets(assetManager.getTextures(), "Textures", c, columns, rows, 0, filter);
-            index = addAssets(assetManager.getMaterials(), "Materials", c, columns, rows, index, filter);
-            index = addAssets(assetManager.getModels(), "Models", c, columns, rows, index, filter);
+            
+            int index = addAssets(textures, "Textures", constraints, columns, rows, 0);
+            index = addAssets(materials, "Materials", constraints, columns, rows, index);
+            index = addAssets(models, "Models", constraints, columns, rows, index);
             lastGridColumns = columns;
             lastGridRows = rows;
             lastFilter = filter;
         }
-
     }
 
-    private void updateGrid(Dimension size) {
-//        GridBagConstraints constraints = new GridBagConstraints();
-//        constraints.gridheight = size.height / 150;
-//        constraints.gridwidth = size.width / 150;
-        int rows = size.height / 180;
-        int columns = size.width / 180;
-//        loadAssets();
-//        GridBagConstraints c = new GridBagConstraints();
-//        c.fill = GridBagConstraints.HORIZONTAL;
-//        c.weightx = 0.5;
-//        
-//        if(rows != lastGridColumns) {
-//            jPanel1.setLayout(new GridLayout(rows, 0, 3, 3));
-//            lastGridColumns = rows;
-//        }
-
-    }
-
-    private int addAssets(String[] items, String name, GridBagConstraints c, int columns, int rows, int startIndex, String filter) {
-        List<String> leavesList = Arrays.asList(items);
-        Collections.sort(leavesList);
-        int x = 0;
-        int y = 0;
+    private int addAssets(List<String> items, String name, GridBagConstraints c, int columns, int rows, int startIndex) {
+        Collections.sort(items);
         int index = startIndex;
-        for (String item : leavesList) {
-            if(!filter.isEmpty() && !item.toLowerCase().contains(filter)){
-                continue;
-            }
+        for (String item : items) {
             AssetPreviewWidget preview = null;
             c.gridx = index % columns;
-            c.gridy = index / columns;
+            c.gridy = (int) (((float)index) / columns);
             if (name.startsWith("Textures")) {
-                final var icon = previewUtil.getOrCreateTexturePreview(item);
-                if (icon != null) {
-                    preview = new TexturePreview(this);
-                    preview.setPreviewImage(icon);
-                }
+                preview = new TexturePreview(this);
+                preview.setPreviewImage(previewUtil.getOrCreateTexturePreview(item));
             } else if (name.startsWith("Materials")) {
                 preview = new MaterialPreview(this);
                 preview.setPreviewImage(previewUtil.getOrCreateMaterialPreview(item, preview));
             } else if (name.startsWith("Models")) {
                 preview = new ModelPreview(this);
                 preview.setPreviewImage(previewUtil.getOrCreateModelPreview(item, preview));
+            }
+            if(preview == null) {
+                continue;
+            }
+            if(assetManager.getAbsoluteAssetPath(item) != null) {
+                preview.setEditable(true);
             }
             preview.setPreviewName(item);
             jPanel1.add(preview, c);
-            x++;
-            if (x == columns) {
-                x = 0;
-                y++;
-            }
             index++;
         }
         return index;
-    }
-
-    private void addAssets(String[] items, String name) {
-        List<String> leavesList = Arrays.asList(items);
-        Collections.sort(leavesList);
-        leavesList.forEach(item -> {
-            AssetPreviewWidget preview = null;
-            if (name.startsWith("Textures")) {
-
-                final var icon = previewUtil.getOrCreateTexturePreview(item);
-                if (icon != null) {
-                    preview = new TexturePreview(this);
-                    preview.setPreviewImage(icon);
-                }
-            } else if (name.startsWith("Materials")) {
-                preview = new MaterialPreview(this);
-                preview.setPreviewImage(previewUtil.getOrCreateMaterialPreview(item, preview));
-            } else if (name.startsWith("Models")) {
-                preview = new ModelPreview(this);
-                preview.setPreviewImage(previewUtil.getOrCreateModelPreview(item, preview));
-            }
-            preview.setPreviewName(item);
-            jPanel1.add(preview);
-        });
-
     }
 
     private void createAssetBrowserFolder(ProjectAssetManager assetManager) {
@@ -245,7 +182,7 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
 
         setAlignmentX(0.0F);
         setAlignmentY(0.0F);
-        setPreferredSize(new java.awt.Dimension(200, 33));
+        setPreferredSize(new java.awt.Dimension(200, 200));
         setLayout(new java.awt.BorderLayout());
 
         org.openide.awt.Mnemonics.setLocalizedText(projectLabel, org.openide.util.NbBundle.getMessage(AssetBrowser.class, "AssetBrowser.projectLabel.text")); // NOI18N
@@ -254,9 +191,8 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
                 projectLabelMouseClicked(evt);
             }
         });
-        add(projectLabel, java.awt.BorderLayout.PAGE_START);
+        add(projectLabel, java.awt.BorderLayout.NORTH);
 
-        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
         jScrollPane1.setPreferredSize(new java.awt.Dimension(200, 300));
 
         jPanel1.setPreferredSize(new java.awt.Dimension(200, 300));
@@ -271,19 +207,29 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
                 filterFieldFocusLost(evt);
             }
         });
+        filterField.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                filterFieldMouseClicked(evt);
+            }
+        });
         filterField.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 filterFieldKeyPressed(evt);
             }
         });
-        add(filterField, java.awt.BorderLayout.PAGE_END);
+        add(filterField, java.awt.BorderLayout.SOUTH);
     }// </editor-fold>//GEN-END:initComponents
 
     private void projectLabelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_projectLabelMouseClicked
         assetManager = ProjectSelection.getProjectAssetManager("Select project");
-        projectLabel.setText(assetManager.getProject().getProjectDirectory().getName());
+        projectName = assetManager.getProject().getProjectDirectory().getName();
+        projectLabel.setText(projectName);
         previewUtil = new PreviewUtil(assetManager);      
         createAssetBrowserFolder(assetManager);
+        
+        
+        System.out.println("loaded project " + projectName);
+
         loadAssets("");
     }//GEN-LAST:event_projectLabelMouseClicked
 
@@ -298,6 +244,11 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
         }
     }//GEN-LAST:event_filterFieldKeyPressed
 
+    private void filterFieldMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_filterFieldMouseClicked
+        //filterField.setSelectionStart(0);
+        //filterField.setSelectionEnd(filterField.getSelectedText().length());
+    }//GEN-LAST:event_filterFieldMouseClicked
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField filterField;
@@ -307,12 +258,12 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
     // End of variables declaration//GEN-END:variables
 
     @Override
-    public void onDoubleClick(AssetPreviewWidget widget) {
+    public void openAsset(AssetPreviewWidget widget) {
         FileObject pf = assetManager.getAssetFileObject(widget.getPreviewName());
         if (widget instanceof MaterialPreview) {
             try {
                 JMEMaterialDataObject matObject = (JMEMaterialDataObject) DataObject.find(pf);
-                new MaterialPreviewOpenSupport(matObject.getPrimaryEntry()).open();
+                new MaterialOpenSupport(matObject.getPrimaryEntry()).open();
             } catch (IOException ex) {
                 Exceptions.printStackTrace(ex);
             }
@@ -329,4 +280,18 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
             JOptionPane.showMessageDialog(null, "Not yet supported");
         }
     }
+
+    @Override
+    public void refreshPreview(AssetPreviewWidget widget) {
+        
+    }
+
+    @Override
+    public void deleteAsset(AssetPreviewWidget widget) {
+        int result = JOptionPane.showConfirmDialog(null, "Delete asset? " + widget.getAssetName());
+        if(result == JOptionPane.OK_OPTION) {
+            
+        }
+    }
+
 }

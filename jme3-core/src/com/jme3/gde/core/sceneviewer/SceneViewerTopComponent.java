@@ -24,13 +24,31 @@
  */
 package com.jme3.gde.core.sceneviewer;
 
+import com.jme3.asset.AssetManager;
+import com.jme3.asset.MaterialKey;
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
+import com.jme3.gde.core.dnd.AssetGrabHandler;
+import com.jme3.gde.core.dnd.AssetNameHolder;
+import com.jme3.gde.core.dnd.MaterialDataFlavor;
+import com.jme3.gde.core.dnd.MaterialDropTargetListener;
+import com.jme3.gde.core.dnd.SpatialDataFlavor;
+import com.jme3.gde.core.dnd.SpatialDropTargetListener;
 import com.jme3.gde.core.filters.FilterExplorerTopComponent;
 import com.jme3.gde.core.icons.IconList;
 import com.jme3.gde.core.scene.SceneApplication;
 import com.jme3.gde.core.scene.SceneRequest;
 import com.jme3.input.awt.AwtKeyInput;
 import com.jme3.input.event.KeyInputEvent;
+import com.jme3.material.Material;
+import com.jme3.math.Ray;
+import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
+import com.jme3.renderer.Camera;
+import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import java.awt.Component;
+import java.awt.dnd.DropTarget;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseWheelEvent;
@@ -52,7 +70,7 @@ import org.openide.windows.WindowManager;
  */
 @ConvertAsProperties(dtd = "-//com.jme3.gde.core.sceneviewer//SceneViewer//EN",
 autostore = false)
-public final class SceneViewerTopComponent extends TopComponent {
+public final class SceneViewerTopComponent extends TopComponent implements AssetNameHolder {
 
     private static SceneViewerTopComponent instance;
     /**
@@ -153,7 +171,11 @@ public final class SceneViewerTopComponent extends TopComponent {
             }
         });
         //}
-
+        
+        setDropTarget(new DropTarget(this, new MaterialDropTargetListener(this)));
+        setDropTarget(new DropTarget(this, new SpatialDropTargetListener(this)));
+        setTransferHandler(new AssetGrabHandler(this, new MaterialDataFlavor()));
+        setTransferHandler(new AssetGrabHandler(this, new SpatialDataFlavor()));
     }
 
     /**
@@ -453,5 +475,60 @@ public final class SceneViewerTopComponent extends TopComponent {
     @Override
     public UndoRedo getUndoRedo() {
         return Lookup.getDefault().lookup(UndoRedo.class);
+    }
+    
+      
+    public void applyMaterial(String assetName, Vector2f cursorPosition) {
+        AssetManager assetManager = app.getAssetManager();
+        Spatial spatial = pickWorldSpatial(app.getCamera(), cursorPosition, app.getRootNode());
+        System.out.println("apply material to " + spatial);
+        if(spatial != null) {
+            Material material = assetManager.loadAsset(new MaterialKey(assetName));
+            spatial.setMaterial(material);
+            System.out.println("material set ");
+        }
+    }
+    
+    public void addModel(String assetName, Vector2f cursorPosition) {
+        AssetManager assetManager = app.getAssetManager();
+        Spatial spatial = assetManager.loadModel(assetName);
+        CollisionResult cr = pick(app.getCamera(), cursorPosition, app.getRootNode());
+        if(cr != null) {
+            spatial.setLocalTranslation(cr.getContactPoint());
+        } else {
+            spatial.setLocalTranslation(app.getCamera().getWorldCoordinates(cursorPosition, 100f));
+        }
+        app.getRootNode().attachChild(spatial);
+    }
+
+    @Override
+    public String getAssetName() {
+        return "";
+    }
+
+    @Override
+    public void setAssetName(String name) {
+    }
+    
+    public static Spatial pickWorldSpatial(Camera cam, Vector2f mouseLoc, Node jmeRootNode) {
+        CollisionResult cr = pick(cam, mouseLoc, jmeRootNode);
+        if (cr != null) {
+            return cr.getGeometry();
+        } else {
+            return null;
+        }
+    }
+    
+    private static CollisionResult pick(Camera cam, Vector2f mouseLoc, Node node) {
+        CollisionResults results = new CollisionResults();
+        Ray ray = new Ray();
+        Vector3f pos = cam.getWorldCoordinates(mouseLoc, 0).clone();
+        Vector3f dir = cam.getWorldCoordinates(mouseLoc, 0.125f).clone();
+        dir.subtractLocal(pos).normalizeLocal();
+        ray.setOrigin(pos);
+        ray.setDirection(dir);
+        node.collideWith(ray, results);
+        CollisionResult result = results.getClosestCollision();
+        return result;
     }
 }

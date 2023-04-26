@@ -2,12 +2,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.jme3.gde.materials.dnd;
+package com.jme3.gde.core.dnd;
 
-import com.jme3.gde.core.dnd.AssetNameHolder;
-import com.jme3.gde.core.dnd.StringDataFlavor;
-import com.jme3.gde.core.dnd.TextureDataFlavor;
-import com.jme3.gde.materials.multiview.widgets.TexturePanel;
+import com.jme3.gde.core.sceneviewer.SceneViewerTopComponent;
+import com.jme3.math.Vector2f;
 import java.awt.Cursor;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -16,20 +14,19 @@ import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
-import javax.swing.JComponent;
 
 /**
  *
  * @author rickard
  */
-public class TextureDropTargetListener implements DropTargetListener{
+public class SpatialDropTargetListener implements DropTargetListener{
 
     private static final Cursor droppableCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     private static final Cursor notDroppableCursor = Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR);
     
-    private final TexturePanel rootPanel;
+    private final SceneViewerTopComponent rootPanel;
 
-    public TextureDropTargetListener(TexturePanel rootPanel) {
+    public SpatialDropTargetListener(SceneViewerTopComponent rootPanel) {
         this.rootPanel = rootPanel;
     }
     
@@ -56,12 +53,16 @@ public class TextureDropTargetListener implements DropTargetListener{
     public void drop(DropTargetDropEvent dtde) {
         this.rootPanel.setCursor(Cursor.getDefaultCursor());
         
-        DataFlavor dragAndDropPanelFlavor = new TextureDataFlavor();
+        DataFlavor dragAndDropPanelFlavor = null;
         
         Object transferableObj = null;
+        Transferable transferable = null;
+        
         try {
+            // Grab expected flavor
+            dragAndDropPanelFlavor = new SpatialDataFlavor();
             
-            final Transferable transferable = dtde.getTransferable();
+            transferable = dtde.getTransferable();
             DropTargetContext c = dtde.getDropTargetContext();
             
             // What does the Transferable support
@@ -76,9 +77,18 @@ public class TextureDropTargetListener implements DropTargetListener{
             System.out.println("transferableObj == null");
             return;
         }
+        final int dropYLoc = dtde.getLocation().y;
+        final int dropXLoc = dtde.getLocation().x;
         
         AssetNameHolder assetNameHolder = (AssetNameHolder) transferableObj;
-        rootPanel.setAssetName("\""+assetNameHolder.getAssetName()+"\"");
+        if (transferableObj == null) {
+            System.out.println("transferableObj == null");
+            return;
+        }
+        // load model
+        
+        // ray cast and drop model
+        rootPanel.addModel(assetNameHolder.getAssetName(), new Vector2f(dropXLoc, dropYLoc));
     }
     
 }

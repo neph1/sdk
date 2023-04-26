@@ -2,10 +2,11 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.jme3.gde.materials.dnd;
+package com.jme3.gde.core.dnd;
 
 import com.jme3.gde.core.dnd.AssetNameHolder;
 import com.jme3.gde.core.dnd.StringDataFlavor;
+import com.jme3.gde.core.dnd.TextureDataFlavor;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -16,12 +17,12 @@ import javax.swing.JPanel;
  *
  * @author rickard
  */
-public class TextureAssetTransferable implements Transferable {
+public class AssetTransferable implements Transferable {
 
-    private DataFlavor[] flavors = new DataFlavor[]{StringDataFlavor.SHARED_INSTANCE};
+    private DataFlavor[] flavors = new DataFlavor[]{new TextureDataFlavor()};
     private AssetNameHolder string;
 
-    public TextureAssetTransferable(AssetNameHolder name) {
+    public AssetTransferable(AssetNameHolder name) {
         this.string = name;
     }
 

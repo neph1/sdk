@@ -4,32 +4,45 @@
  */
 package com.jme3.gde.assetbrowser.widgets;
 
+import com.jme3.gde.assetbrowser.dnd.AssetPreviewPopupMenu;
 import com.jme3.gde.assetbrowser.dnd.AssetPreviewWidgetMouseListener;
-import com.jme3.gde.materials.dnd.TextureMoveHandler;
+import com.jme3.gde.core.dnd.AssetGrabHandler;
 import com.jme3.gde.core.icons.IconList;
 import com.jme3.gde.core.scene.PreviewRequest;
 import com.jme3.gde.core.scene.SceneListener;
 import com.jme3.gde.core.scene.SceneRequest;
 import com.jme3.gde.core.dnd.AssetNameHolder;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.Action;
 import javax.swing.Icon;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 
 /**
  * Displays an asset as an image in the AssetBrowser
  * @author rickard
  */
-public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListener, AssetNameHolder {
+public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListener, AssetNameHolder, ActionListener {
 
+    private boolean editable;
+    private PreviewInteractionListener listener;
     /**
      * Creates new form AssetPreviewWidget
      */
     public AssetPreviewWidget() {
         initComponents();
-        setTransferHandler(TextureMoveHandler.createFor(this));
     }
     
     public AssetPreviewWidget(PreviewInteractionListener listener) {
         this();
-        addMouseListener(new AssetPreviewWidgetMouseListener(this, listener));
+        this.listener = listener;
+        final var mouseListener = new AssetPreviewWidgetMouseListener(this, listener);
+        addMouseListener(mouseListener);
+        addMouseMotionListener(mouseListener);
+        setComponentPopupMenu(new AssetPreviewPopupMenu(this));
     }
 
     public void setPreviewImage(Icon icon) {
@@ -56,7 +69,13 @@ public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListe
         assetNameLabel = new javax.swing.JLabel();
         assetPreviewLabel = new javax.swing.JLabel();
 
+        setMinimumSize(new java.awt.Dimension(170, 180));
         setPreferredSize(new java.awt.Dimension(170, 180));
+        addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                formMousePressed(evt);
+            }
+        });
 
         org.openide.awt.Mnemonics.setLocalizedText(assetNameLabel, org.openide.util.NbBundle.getMessage(AssetPreviewWidget.class, "AssetPreviewWidget.assetNameLabel.text")); // NOI18N
 
@@ -88,6 +107,10 @@ public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListe
         assetPreviewLabel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(AssetPreviewWidget.class, "AssetPreviewWidget.assetPreviewLabel.AccessibleContext.accessibleName")); // NOI18N
     }// </editor-fold>//GEN-END:initComponents
 
+    private void formMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMousePressed
+
+    }//GEN-LAST:event_formMousePressed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel assetNameLabel;
@@ -105,9 +128,7 @@ public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListe
     @Override
     public void previewCreated(PreviewRequest request) {
         if (request.getRequester() == this) {
-            System.out.println("preview generated " + this.hashCode() + " " + getParent());
             java.awt.EventQueue.invokeLater(() -> {
-                System.out.println("setting icon " + this.hashCode() + " " + getParent());
                 assetPreviewLabel.setIcon(IconList.asset);
 //                    invalidate();
                 revalidate();
@@ -127,5 +148,24 @@ public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListe
         assetNameLabel.setText(name);
     }
     
+    public void setEditable(boolean editable) {
+        this.editable = editable;
+    }
+    
+    public boolean isEditable() {
+        return editable;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        switch(e.getActionCommand()) {
+            case "Refresh":
+                listener.refreshPreview(this);
+                break;
+            case "Delete":
+                
+                break;
+        }
+    }
 
 }
