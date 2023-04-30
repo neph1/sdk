@@ -47,37 +47,37 @@ import org.openide.util.Exceptions;
  * @author rickard
  */
 public class PreviewUtil {
-    
+
+    private static final int previewSize = 150;
     private ProjectAssetManager assetManager;
-    
+
     public PreviewUtil(ProjectAssetManager assetManager) {
         this.assetManager = assetManager;
     }
 
-    public Icon getOrCreateTexturePreview(String asset) {
-        final var icon = tryGetPreview(asset);
-        if(icon != null) {
+    public Icon getOrCreateTexturePreview(String asset, int size) {
+        final var icon = tryGetPreview(asset, size);
+        if (icon != null) {
             return icon;
         }
         System.out.println("creating preview ");
         Texture texture = assetManager.loadTexture(asset);
         Image image = texture.getImage();
 
-        
         BufferedImage buff = ImageToAwt.convert(image, false, false, 0);
-        
+
         BufferedImage scaled = scaleDown(buff, 150, 150);
         BufferedImage noAlpha = convertImage(scaled);
         savePreview(assetManager, asset.split("\\.")[0], noAlpha);
         return new ImageIcon(noAlpha);
     }
 
-    public Icon getOrCreateMaterialPreview(String asset, AssetPreviewWidget widget) {
-        final var icon = tryGetPreview(asset);
-        if(icon != null) {
+    public Icon getOrCreateMaterialPreview(String asset, AssetPreviewWidget widget, int size) {
+        final var icon = tryGetPreview(asset, size);
+        if (icon != null) {
             return icon;
         }
-        
+
         Material mat = assetManager.loadMaterial(asset);
 
         Box boxMesh = new Box(1.75f, 1.75f, 1.75f);
@@ -88,8 +88,7 @@ public class PreviewUtil {
         SceneApplication.getApplication().enqueue(() -> {
             SceneApplication.getApplication().getRenderManager().preloadScene(box);
             java.awt.EventQueue.invokeLater(() -> {
-                
-                
+
                 box.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.DEG_TO_RAD * 30, Vector3f.UNIT_X).multLocal(new Quaternion().fromAngleAxis(FastMath.QUARTER_PI, Vector3f.UNIT_Y)));
                 MikktspaceTangentGenerator.generate(box);
                 System.out.println("preview requested " + asset);
@@ -101,50 +100,50 @@ public class PreviewUtil {
         });
         return IconList.asset;
     }
-    
-    private Icon tryGetPreview(String asset) {
+
+    private Icon tryGetPreview(String asset, int size) {
         final var assetPath = assetManager.getAbsoluteAssetPath(asset);
-        
+
         FileTime assetModificationTime = getAssetModificationTime(assetPath);
-        
+
         File previewFile = loadPreviewFile(assetManager, asset.split("\\.")[0]);
-        
-        if(previewFile != null && assetModificationTime != null) {
+
+        if (previewFile != null && assetModificationTime != null) {
             Path previewPath = previewFile.toPath();
             try {
                 BasicFileAttributes previewAttributes = Files.readAttributes(
                         previewPath, BasicFileAttributes.class);
                 FileTime previewCreationTime = previewAttributes.creationTime();
-                
-                if(previewCreationTime.compareTo(assetModificationTime) > 0) {
+
+                if (previewCreationTime.compareTo(assetModificationTime) > 0) {
                     System.out.println("existing preview OK " + previewFile);
                     BufferedImage image = ImageIO.read(previewFile);
-                    if(image != null) {
-                        return new ImageIcon(image);
+                    if (image != null) {
+                        return new ImageIcon(size != previewSize ? image.getScaledInstance(size, size, 0) : image);
                     }
                     System.out.println("previewFile is null " + previewFile);
                 }
-                
+
             } catch (IOException ex) {
                 Exceptions.printStackTrace(ex);
             }
         }
         return null;
     }
-    
-    public Icon getOrCreateModelPreview(String asset, AssetPreviewWidget widget) {
-        final var icon = tryGetPreview(asset);
-        if(icon != null) {
+
+    public Icon getOrCreateModelPreview(String asset, AssetPreviewWidget widget, int size) {
+        final var icon = tryGetPreview(asset, size);
+        if (icon != null) {
             return icon;
         }
-        
+
         Material unshaded = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         unshaded.setColor("Color", ColorRGBA.Red);
-        
+
         Spatial spatial = assetManager.loadModel(asset);
 
         recurseApplyDefaultMaterial(spatial, unshaded);
-        
+
         PreviewListener listener = new PreviewListener(assetManager, asset.split("\\.")[0], widget);
         SceneApplication.getApplication().addSceneListener(listener);
         SceneApplication.getApplication().enqueue(() -> {
@@ -152,26 +151,26 @@ public class PreviewUtil {
             java.awt.EventQueue.invokeLater(() -> {
                 System.out.println("preview requested " + asset);
                 PreviewRequest request = new PreviewRequest(listener, spatial, 150, 150);
-                request.getCameraRequest().setLocation(new Vector3f(0, 0, 7));
+                request.getCameraRequest().setLocation(new Vector3f(4, 4, 7));
                 request.getCameraRequest().setLookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Y);
                 SceneApplication.getApplication().createPreview(request);
             });
         });
         return IconList.asset;
     }
-    
+
     private void recurseApplyDefaultMaterial(Spatial spatial, Material material) {
-        if(spatial instanceof Node) {
+        if (spatial instanceof Node) {
             ((Node) spatial).getChildren().forEach(child -> recurseApplyDefaultMaterial(child, material));
         } else if (spatial instanceof Geometry) {
-            if(((Geometry) spatial).getMaterial() == null) {
+            if (((Geometry) spatial).getMaterial() == null) {
                 spatial.setMaterial(material);
             }
         }
     }
-    
+
     private FileTime getAssetModificationTime(String assetPath) {
-        if(assetPath == null) {
+        if (assetPath == null) {
             return null;
         }
         Path path = new File(assetPath).toPath();
@@ -187,25 +186,16 @@ public class PreviewUtil {
         }
         return null;
     }
-    
+
     private File loadPreviewFile(ProjectAssetManager assetManager, String id) {
         FileObject fileObject = assetManager.getProject().getProjectDirectory();
         return new File(fileObject.getPath() + "/.assetBrowser/", id + ".jpg");
     }
-    
-    private BufferedImage loadPreview(ProjectAssetManager assetManager, String id) {
-        try {
-            return ImageIO.read(loadPreviewFile(assetManager, id));
-        } catch (IOException ex) {
-            Exceptions.printStackTrace(ex);
-        }
-        return null;
-    }
-    
+
     private void savePreview(ProjectAssetManager assetManager, String id, BufferedImage preview) {
         FileObject fileObject = assetManager.getProject().getProjectDirectory();
         String[] fileSections = id.split("/");
-        String fileName = fileSections[fileSections.length-1];
+        String fileName = fileSections[fileSections.length - 1];
         System.out.println("saving " + id.substring(0, id.length() - fileName.length()) + "    " + fileName + ".jpg");
         File path = new File(fileObject.getPath() + "/.assetBrowser/" + id.substring(0, id.length() - fileName.length()));
         File file = new File(path, fileName + ".jpg");
@@ -231,7 +221,7 @@ public class PreviewUtil {
 
         return targetImage;
     }
-    
+
     private class PreviewListener implements SceneListener {
 
         final AssetPreviewWidget widget;
@@ -255,30 +245,23 @@ public class PreviewUtil {
         @Override
         public void previewCreated(PreviewRequest request) {
             if (request.getRequester() == this) {
-                final BufferedImage image = request.getImage();
-                final BufferedImage noAlpha = convertImage(image);
-                System.out.println("preview generated " + image);
+                final var image = request.getImage();
+                final var noAlpha = convertImage(image);
                 java.awt.EventQueue.invokeLater(() -> {
-                    widget.setPreviewImage(Icons.error);
+                    widget.setPreviewImage(new ImageIcon(noAlpha));
                     savePreview(assetManager, assetName, noAlpha);
-                    widget.invalidate();
                     widget.revalidate();
-                    widget.updateUI();
-//                    ((DefaultTreeModel)tree.getModel()).reload();
-//                    tree.revalidate();
-//                    tree.repaint();
-                            });
+                });
             }
         }
     };
 
     private static BufferedImage convertImage(BufferedImage file) {
-        Color bgColor = Color.WHITE;
-        int width = file.getWidth();
-        int height = file.getHeight();
+        final int width = file.getWidth();
+        final int height = file.getHeight();
         BufferedImage background = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = background.createGraphics();
-        g.setColor(bgColor);
+        g.setColor(Color.WHITE);
         g.fillRect(0, 0, width, height);
         g.drawImage(file, 0, 0, null);
         g.dispose();

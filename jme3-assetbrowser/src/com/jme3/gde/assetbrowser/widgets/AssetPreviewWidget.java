@@ -76,34 +76,16 @@ public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListe
                 formMousePressed(evt);
             }
         });
+        setLayout(new java.awt.BorderLayout());
 
         org.openide.awt.Mnemonics.setLocalizedText(assetNameLabel, org.openide.util.NbBundle.getMessage(AssetPreviewWidget.class, "AssetPreviewWidget.assetNameLabel.text")); // NOI18N
+        add(assetNameLabel, java.awt.BorderLayout.SOUTH);
+        assetNameLabel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(AssetPreviewWidget.class, "AssetPreviewWidget.assetNameLabel.AccessibleContext.accessibleName")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(assetPreviewLabel, org.openide.util.NbBundle.getMessage(AssetPreviewWidget.class, "AssetPreviewWidget.assetPreviewLabel.text")); // NOI18N
+        assetPreviewLabel.setVerticalAlignment(javax.swing.SwingConstants.TOP);
         assetPreviewLabel.setPreferredSize(new java.awt.Dimension(150, 150));
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(assetNameLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(assetPreviewLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(assetPreviewLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(assetNameLabel)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        assetNameLabel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(AssetPreviewWidget.class, "AssetPreviewWidget.assetNameLabel.AccessibleContext.accessibleName")); // NOI18N
+        add(assetPreviewLabel, java.awt.BorderLayout.CENTER);
         assetPreviewLabel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(AssetPreviewWidget.class, "AssetPreviewWidget.assetPreviewLabel.AccessibleContext.accessibleName")); // NOI18N
     }// </editor-fold>//GEN-END:initComponents
 
