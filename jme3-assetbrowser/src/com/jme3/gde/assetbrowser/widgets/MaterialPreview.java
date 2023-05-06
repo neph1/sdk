@@ -15,7 +15,7 @@ public class MaterialPreview extends AssetPreviewWidget{
     
     public MaterialPreview(PreviewInteractionListener listener) {
         super(listener);
-        setTransferHandler(new AssetGrabHandler<MaterialDataFlavor>(this, new MaterialDataFlavor()));
+        setTransferHandler(new AssetGrabHandler(this, new MaterialDataFlavor()));
     }
     
 }

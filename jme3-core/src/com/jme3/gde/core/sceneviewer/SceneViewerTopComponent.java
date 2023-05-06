@@ -33,7 +33,7 @@ import com.jme3.gde.core.dnd.AssetNameHolder;
 import com.jme3.gde.core.dnd.MaterialDataFlavor;
 import com.jme3.gde.core.dnd.MaterialDropTargetListener;
 import com.jme3.gde.core.dnd.SpatialDataFlavor;
-import com.jme3.gde.core.dnd.SpatialDropTargetListener;
+import com.jme3.gde.core.dnd.SceneViewerDropTargetListener;
 import com.jme3.gde.core.filters.FilterExplorerTopComponent;
 import com.jme3.gde.core.icons.IconList;
 import com.jme3.gde.core.scene.SceneApplication;
@@ -70,7 +70,7 @@ import org.openide.windows.WindowManager;
  */
 @ConvertAsProperties(dtd = "-//com.jme3.gde.core.sceneviewer//SceneViewer//EN",
 autostore = false)
-public final class SceneViewerTopComponent extends TopComponent implements AssetNameHolder {
+public final class SceneViewerTopComponent extends TopComponent {
 
     private static SceneViewerTopComponent instance;
     /**
@@ -172,10 +172,7 @@ public final class SceneViewerTopComponent extends TopComponent implements Asset
         });
         //}
         
-        setDropTarget(new DropTarget(this, new MaterialDropTargetListener(this)));
-        setDropTarget(new DropTarget(this, new SpatialDropTargetListener(this)));
-        setTransferHandler(new AssetGrabHandler(this, new MaterialDataFlavor()));
-        setTransferHandler(new AssetGrabHandler(this, new SpatialDataFlavor()));
+        setDropTarget(new DropTarget(this, new SceneViewerDropTargetListener(this)));
     }
 
     /**
@@ -481,11 +478,9 @@ public final class SceneViewerTopComponent extends TopComponent implements Asset
     public void applyMaterial(String assetName, Vector2f cursorPosition) {
         AssetManager assetManager = app.getAssetManager();
         Spatial spatial = pickWorldSpatial(app.getCamera(), cursorPosition, app.getRootNode());
-        System.out.println("apply material to " + spatial);
         if(spatial != null) {
             Material material = assetManager.loadAsset(new MaterialKey(assetName));
             spatial.setMaterial(material);
-            System.out.println("material set ");
         }
     }
     
@@ -501,15 +496,6 @@ public final class SceneViewerTopComponent extends TopComponent implements Asset
         app.getRootNode().attachChild(spatial);
     }
 
-    @Override
-    public String getAssetName() {
-        return "";
-    }
-
-    @Override
-    public void setAssetName(String name) {
-    }
-    
     public static Spatial pickWorldSpatial(Camera cam, Vector2f mouseLoc, Node jmeRootNode) {
         CollisionResult cr = pick(cam, mouseLoc, jmeRootNode);
         if (cr != null) {

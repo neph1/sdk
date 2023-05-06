@@ -15,7 +15,7 @@ public class TexturePreview extends AssetPreviewWidget{
 
     public TexturePreview(PreviewInteractionListener listener) {
         super(listener);
-        setTransferHandler(new AssetGrabHandler<>(this, new TextureDataFlavor()));
+        setTransferHandler(new AssetGrabHandler(this, new TextureDataFlavor()));
     }
     
 }

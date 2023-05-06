@@ -5,6 +5,7 @@
 package com.jme3.gde.scenecomposer.dnd;
 
 import com.jme3.gde.core.dnd.AssetNameHolder;
+import com.jme3.gde.core.dnd.SpatialDataFlavor;
 import com.jme3.gde.core.dnd.StringDataFlavor;
 import com.jme3.gde.scenecomposer.SceneComposerTopComponent;
 import com.jme3.gde.scenecomposer.SceneEditTool;
@@ -65,7 +66,7 @@ public class SpatialDropTargetListener implements DropTargetListener{
         
         try {
             // Grab expected flavor
-            dragAndDropPanelFlavor = StringDataFlavor.SHARED_INSTANCE;
+            dragAndDropPanelFlavor = new SpatialDataFlavor();
             
             transferable = dtde.getTransferable();
             DropTargetContext c = dtde.getDropTargetContext();

@@ -18,6 +18,7 @@ import com.jme3.gde.materials.MaterialProperty;
 import com.jme3.gde.core.dnd.AssetNameHolder;
 import com.jme3.gde.core.dnd.TextureDataFlavor;
 import com.jme3.gde.core.dnd.AssetGrabHandler;
+import com.jme3.gde.core.dnd.StringDataFlavor;
 import com.jme3.gde.materials.dnd.TextureDropTargetListener;
 import com.jme3.gde.materials.multiview.MaterialEditorTopComponent;
 import com.jme3.gde.materials.multiview.widgets.icons.Icons;
@@ -34,7 +35,7 @@ import java.util.logging.Logger;
  * The TexturePanel is a row in the material editor representing a special texture
  * @author normenhansen
  */
-public class TexturePanel extends MaterialPropertyWidget implements AssetNameHolder {
+public class TexturePanel extends MaterialPropertyWidget {
 
     private final TexturePropertyEditor editor;
     private final ProjectAssetManager manager;
@@ -50,7 +51,6 @@ public class TexturePanel extends MaterialPropertyWidget implements AssetNameHol
         editor = new TexturePropertyEditor(manager);
         initComponents();
         
-        setTransferHandler(new AssetGrabHandler<>(this, new TextureDataFlavor()));
         setDropTarget(new DropTarget(this, new TextureDropTargetListener(this)));
     }
 
@@ -329,13 +329,7 @@ public class TexturePanel extends MaterialPropertyWidget implements AssetNameHol
     private javax.swing.JLabel texturePreview;
     // End of variables declaration//GEN-END:variables
 
-    @Override
-    public String getAssetName() {
-        return textureName;
-    }
-
-    @Override
-    public void setAssetName(String name) {
+    public void setTextureName(String name) {
         property.setValue("");
         java.awt.EventQueue.invokeLater(() -> {
             if(name.startsWith("\"")){

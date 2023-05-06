@@ -16,14 +16,16 @@ import javax.swing.JPanel;
 /**
  *
  * @author rickard
+ * @param <T>
  */
-public class AssetTransferable implements Transferable {
+public class AssetTransferable<T extends DataFlavor> implements Transferable {
 
-    private DataFlavor[] flavors = new DataFlavor[]{new TextureDataFlavor()};
+    private DataFlavor[] flavors;
     private AssetNameHolder string;
 
-    public AssetTransferable(AssetNameHolder name) {
+    public AssetTransferable(AssetNameHolder name, T flavor) {
         this.string = name;
+        flavors = new DataFlavor[]{flavor};
     }
 
     @Override
@@ -43,13 +45,11 @@ public class AssetTransferable implements Transferable {
 
     public AssetNameHolder getString() {
         return string;
-
     }
 
     @Override
     public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
         if (isDataFlavorSupported(flavor)) {
-            System.out.println("returning " + getString());
             return getString();
         } else {
             throw new UnsupportedFlavorException(flavor);

@@ -23,7 +23,7 @@ public class AssetGrabHandler<T extends DataFlavor> extends TransferHandler {
 
     //private T t;
     private static final long serialVersionUID = 1L;
-    private DataFlavor stringFlavor;
+    private DataFlavor flavor;
     // We'll be moving the strings of this list
 //        private AssetPreviewWidget preview;
     private AssetNameHolder origin;
@@ -32,7 +32,7 @@ public class AssetGrabHandler<T extends DataFlavor> extends TransferHandler {
     public AssetGrabHandler(AssetNameHolder origin, T flavor) {
         this.content = origin.getAssetName();
         this.origin = origin;
-        stringFlavor = flavor;
+        this.flavor = flavor;
     }
     
     // Clients should use a static factory method to instantiate the handler
@@ -42,15 +42,10 @@ public class AssetGrabHandler<T extends DataFlavor> extends TransferHandler {
         this.content = name;
     }
 
-        public static AssetGrabHandler createFor(AssetNameHolder origin, Class c) {
-            AssetGrabHandler handler = new AssetGrabHandler(origin.getAssetName());
-            handler.origin = origin;
-            return handler;
-        }
-        
     @Override
     public boolean canImport(TransferSupport info) {
-        return info.isDataFlavorSupported(stringFlavor);
+        System.out.println("canImport " + info.isDataFlavorSupported(flavor));
+        return info.isDataFlavorSupported(flavor);
     }
 
     @Override
@@ -59,7 +54,7 @@ public class AssetGrabHandler<T extends DataFlavor> extends TransferHandler {
         System.out.println("importData 1 ");
         boolean success = false;
         try {
-            String importedData = (String) t.getTransferData(stringFlavor);
+            String importedData = (String) t.getTransferData(flavor);
 
             System.out.println("importData " + importedData);
 //                addToListModel(importedData);
@@ -77,9 +72,8 @@ public class AssetGrabHandler<T extends DataFlavor> extends TransferHandler {
 
     @Override
     public Transferable createTransferable(JComponent source) {
-        System.out.println("createTransferable " + content + " t " + stringFlavor);
         // We need the values from the list as an object array, otherwise the data flavor won't match in importData
-        return new AssetTransferable(origin);
+        return new AssetTransferable(origin, flavor);
     }
 
     public void setContent(String name) {

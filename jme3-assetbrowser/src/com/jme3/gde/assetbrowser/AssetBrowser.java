@@ -1,9 +1,37 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
+ *  Copyright (c) 2009-2023 jMonkeyEngine
+ *  All rights reserved.
+ * 
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are
+ *  met:
+ * 
+ *  * Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 
+ *  * Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 
+ *  * Neither the name of 'jMonkeyEngine' nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ * 
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ *  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ *  PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ *  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ *  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ *  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ *  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.jme3.gde.assetbrowser;
 
+import com.jme3.gde.assetbrowser.icons.Icons;
 import com.jme3.gde.assetbrowser.widgets.AssetPreviewWidget;
 import com.jme3.gde.assetbrowser.widgets.MaterialPreview;
 import com.jme3.gde.assetbrowser.widgets.ModelPreview;
@@ -19,8 +47,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
@@ -30,12 +56,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.swing.BoxLayout;
 import javax.swing.JOptionPane;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.text.View;
-import javax.swing.tree.DefaultMutableTreeNode;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
@@ -72,9 +93,14 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
             public void componentResized(ComponentEvent e) {
 //                Dimension size = e.getComponent().getSize();
 //                System.out.println("component resized " + size);
+                setSize(getParent().getSize());
                 setPreferredSize(getParent().getSize());
-                setMinimumSize(getParent().getSize());
+//                setMinimumSize(getParent().getSize());
                 getLayout().layoutContainer(AssetBrowser.this);
+                //repaint();
+
+             //revalidate();
+//jScrollPane1.setPreferredSize(getParent().getSize());
                 java.awt.EventQueue.invokeLater(() -> {
                     
                     loadAssets(lastFilter);
@@ -115,11 +141,11 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
         
         int rows = Math.max(size.height / sizeY, 1);
         
-        final var textures = Arrays.stream(assetManager.getTextures()).filter(s -> filter.isEmpty() || s.contains(filter)).collect(Collectors.toList());
-        final var materials = Arrays.stream(assetManager.getMaterials()).filter(s -> filter.isEmpty() || s.contains(filter)).collect(Collectors.toList());
-        final var models = Arrays.stream(assetManager.getModels()).filter(s -> filter.isEmpty() || s.contains(filter)).collect(Collectors.toList());
+        final var textures = Arrays.stream(assetManager.getTextures()).filter(s -> filter.isEmpty() || s.toLowerCase().contains(filter)).collect(Collectors.toList());
+        final var materials = Arrays.stream(assetManager.getMaterials()).filter(s -> filter.isEmpty() || s.toLowerCase().contains(filter)).collect(Collectors.toList());
+        final var models = Arrays.stream(assetManager.getModels()).filter(s -> filter.isEmpty() || s.toLowerCase().contains(filter)).collect(Collectors.toList());
         int numAssets = textures.size() + materials.size() + models.size();
-        int columns = numAssets / rows;
+        int columns = Math.max(numAssets / rows, 1);
         constraints.fill = GridBagConstraints.BOTH;
         constraints.gridx = sizeX;
         constraints.gridy = sizeY;
@@ -127,7 +153,7 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
         
         
         Dimension newSize = new Dimension(columns * sizeX, rows * sizeY);
-        System.out.println("old size " + size + " new size " + newSize + " " + columns);
+        System.out.println("old size " + size + " new size " + newSize + " " + columns + " " + rows);
         if (columns != lastGridColumns || rows != lastGridRows || !lastFilter.equals(filter)) {
             previewsPanel.removeAll();
             previewsPanel.setSize(newSize);
@@ -152,7 +178,6 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
             
             c.gridx = index % columns;
             c.gridy = (int) (((float)index) / columns);
-            System.out.println("x " + c.gridx + " y " + c.gridy );
             if (name.startsWith("Textures")) {
                 preview = new TexturePreview(this);
                 preview.setPreviewImage(previewUtil.getOrCreateTexturePreview(item, imageSize));
@@ -200,15 +225,21 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
         previewsPanel = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         filterField = new javax.swing.JTextField();
+        clearFilterButton = new javax.swing.JButton();
+        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
         sizeSlider = new javax.swing.JSlider();
 
         setAlignmentX(0.0F);
         setAlignmentY(0.0F);
         setPreferredSize(new java.awt.Dimension(2000, 2000));
-        setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.Y_AXIS));
+        setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.PAGE_AXIS));
 
+        projectLabel.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         org.openide.awt.Mnemonics.setLocalizedText(projectLabel, org.openide.util.NbBundle.getMessage(AssetBrowser.class, "AssetBrowser.projectLabel.text")); // NOI18N
         projectLabel.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        projectLabel.setAlignmentX(0.5F);
+        projectLabel.setAlignmentY(0.0F);
+        projectLabel.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
         projectLabel.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 projectLabelMouseClicked(evt);
@@ -226,7 +257,6 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
         add(jScrollPane1);
 
         jPanel2.setMaximumSize(new java.awt.Dimension(2147483647, 23));
-        jPanel2.setLayout(new java.awt.BorderLayout());
 
         filterField.setText(org.openide.util.NbBundle.getMessage(AssetBrowser.class, "AssetBrowser.filterField.text")); // NOI18N
         filterField.setMinimumSize(new java.awt.Dimension(100, 23));
@@ -251,7 +281,20 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
                 filterFieldKeyPressed(evt);
             }
         });
-        jPanel2.add(filterField, java.awt.BorderLayout.WEST);
+        jPanel2.add(filterField);
+
+        clearFilterButton.setIcon(Icons.clearFilter);
+        org.openide.awt.Mnemonics.setLocalizedText(clearFilterButton, org.openide.util.NbBundle.getMessage(AssetBrowser.class, "AssetBrowser.clearFilterButton.text")); // NOI18N
+        clearFilterButton.setMaximumSize(new java.awt.Dimension(23, 23));
+        clearFilterButton.setMinimumSize(new java.awt.Dimension(23, 23));
+        clearFilterButton.setPreferredSize(new java.awt.Dimension(23, 23));
+        clearFilterButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                clearFilterButtonMouseClicked(evt);
+            }
+        });
+        jPanel2.add(clearFilterButton);
+        jPanel2.add(filler1);
 
         sizeSlider.setMaximum(2);
         sizeSlider.setToolTipText(org.openide.util.NbBundle.getMessage(AssetBrowser.class, "AssetBrowser.sizeSlider.toolTipText")); // NOI18N
@@ -262,7 +305,7 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
                 sizeSliderStateChanged(evt);
             }
         });
-        jPanel2.add(sizeSlider, java.awt.BorderLayout.EAST);
+        jPanel2.add(sizeSlider);
 
         add(jPanel2);
     }// </editor-fold>//GEN-END:initComponents
@@ -321,8 +364,16 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
         }
     }//GEN-LAST:event_sizeSliderStateChanged
 
+    private void clearFilterButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_clearFilterButtonMouseClicked
+        filterField.setText("");
+        lastFilter = "";
+        loadAssets("");
+    }//GEN-LAST:event_clearFilterButtonMouseClicked
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton clearFilterButton;
+    private javax.swing.Box.Filler filler1;
     private javax.swing.JTextField filterField;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;

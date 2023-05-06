@@ -6,4 +6,5 @@ package com.jme3.gde.core.dnd;
  */
 public class MaterialDataFlavor extends StringDataFlavor{
     
+    public final static MaterialDataFlavor instance = new MaterialDataFlavor();
 }

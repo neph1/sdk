@@ -51,6 +51,7 @@ public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListe
 
     public void setPreviewName(String name) {
         assetNameLabel.setText(name);
+        setToolTipText(name);
     }
     
     public String getPreviewName() {

@@ -56,8 +56,6 @@ public class TextureDropTargetListener implements DropTargetListener{
     public void drop(DropTargetDropEvent dtde) {
         this.rootPanel.setCursor(Cursor.getDefaultCursor());
         
-        DataFlavor dragAndDropPanelFlavor = new TextureDataFlavor();
-        
         Object transferableObj = null;
         try {
             
@@ -65,8 +63,8 @@ public class TextureDropTargetListener implements DropTargetListener{
             DropTargetContext c = dtde.getDropTargetContext();
             
             // What does the Transferable support
-            if (transferable.isDataFlavorSupported(dragAndDropPanelFlavor)) {
-                transferableObj = dtde.getTransferable().getTransferData(dragAndDropPanelFlavor);
+            if (transferable.isDataFlavorSupported(TextureDataFlavor.instance)) {
+                transferableObj = dtde.getTransferable().getTransferData(TextureDataFlavor.instance);
             } 
             
         } catch (Exception ex) { ex.printStackTrace(); }
@@ -78,7 +76,7 @@ public class TextureDropTargetListener implements DropTargetListener{
         }
         
         AssetNameHolder assetNameHolder = (AssetNameHolder) transferableObj;
-        rootPanel.setAssetName("\""+assetNameHolder.getAssetName()+"\"");
+        rootPanel.setTextureName("\""+assetNameHolder.getAssetName()+"\"");
     }
     
 }

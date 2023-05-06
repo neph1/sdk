@@ -9,24 +9,26 @@ import com.jme3.math.Vector2f;
 import java.awt.Cursor;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DropTargetContext;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
+import java.io.IOException;
 
 /**
  *
  * @author rickard
  */
-public class SpatialDropTargetListener implements DropTargetListener{
+public class SceneViewerDropTargetListener implements DropTargetListener{
 
     private static final Cursor droppableCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     private static final Cursor notDroppableCursor = Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR);
     
     private final SceneViewerTopComponent rootPanel;
 
-    public SpatialDropTargetListener(SceneViewerTopComponent rootPanel) {
+    public SceneViewerDropTargetListener(SceneViewerTopComponent rootPanel) {
         this.rootPanel = rootPanel;
     }
     
@@ -53,42 +55,48 @@ public class SpatialDropTargetListener implements DropTargetListener{
     public void drop(DropTargetDropEvent dtde) {
         this.rootPanel.setCursor(Cursor.getDefaultCursor());
         
-        DataFlavor dragAndDropPanelFlavor = null;
+        
         
         Object transferableObj = null;
         Transferable transferable = null;
         
+        
         try {
             // Grab expected flavor
-            dragAndDropPanelFlavor = new SpatialDataFlavor();
             
             transferable = dtde.getTransferable();
-            DropTargetContext c = dtde.getDropTargetContext();
             
             // What does the Transferable support
-            if (transferable.isDataFlavorSupported(dragAndDropPanelFlavor)) {
-                transferableObj = dtde.getTransferable().getTransferData(dragAndDropPanelFlavor);
-            } 
+            if (transferable.isDataFlavorSupported(SpatialDataFlavor.instance)) {
+                transferableObj = dtde.getTransferable().getTransferData(SpatialDataFlavor.instance);
+            }
+            if(transferableObj == null) {
+                if (transferable.isDataFlavorSupported(MaterialDataFlavor.instance)) {
+                    transferableObj = dtde.getTransferable().getTransferData(MaterialDataFlavor.instance);
+                }
+            }
             
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (UnsupportedFlavorException | IOException ex) { ex.printStackTrace(); }
         
         // If didn't find an item, bail
-        if (transferableObj == null) {
+        if (transferable == null || transferableObj == null) {
             System.out.println("transferableObj == null");
             return;
         }
+        
+        
+        AssetNameHolder assetNameHolder = (AssetNameHolder) transferableObj;
+        
         final int dropYLoc = dtde.getLocation().y;
         final int dropXLoc = dtde.getLocation().x;
         
-        AssetNameHolder assetNameHolder = (AssetNameHolder) transferableObj;
-        if (transferableObj == null) {
-            System.out.println("transferableObj == null");
-            return;
-        }
-        // load model
-        
         // ray cast and drop model
-        rootPanel.addModel(assetNameHolder.getAssetName(), new Vector2f(dropXLoc, dropYLoc));
+        if (transferable.isDataFlavorSupported(SpatialDataFlavor.instance)) {
+            rootPanel.addModel(assetNameHolder.getAssetName(), new Vector2f(dropXLoc, dropYLoc));
+        } else if(transferable.isDataFlavorSupported(MaterialDataFlavor.instance)) {
+            rootPanel.applyMaterial(assetNameHolder.getAssetName(), new Vector2f(dropXLoc, dropYLoc));
+        }
+        
     }
     
 }

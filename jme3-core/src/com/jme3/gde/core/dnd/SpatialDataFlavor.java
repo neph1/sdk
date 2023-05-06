@@ -4,12 +4,12 @@
  */
 package com.jme3.gde.core.dnd;
 
-import com.jme3.gde.core.dnd.StringDataFlavor;
-
 /**
  *
  * @author rickard
  */
 public class SpatialDataFlavor extends StringDataFlavor{
+    
+    public final static SpatialDataFlavor instance = new SpatialDataFlavor();
     
 }

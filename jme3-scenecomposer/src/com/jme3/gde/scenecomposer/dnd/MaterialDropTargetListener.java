@@ -5,11 +5,8 @@
 package com.jme3.gde.scenecomposer.dnd;
 
 import com.jme3.gde.core.dnd.AssetNameHolder;
-import com.jme3.gde.core.dnd.StringDataFlavor;
+import com.jme3.gde.core.dnd.MaterialDataFlavor;
 import com.jme3.gde.scenecomposer.SceneComposerTopComponent;
-import com.jme3.gde.scenecomposer.SceneEditTool;
-import com.jme3.math.Vector2f;
-import com.jme3.math.Vector3f;
 import java.awt.Cursor;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -18,7 +15,6 @@ import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
-import javax.swing.JComponent;
 
 /**
  *
@@ -65,7 +61,7 @@ public class MaterialDropTargetListener implements DropTargetListener{
         
         try {
             // Grab expected flavor
-            dragAndDropPanelFlavor = StringDataFlavor.SHARED_INSTANCE;
+            dragAndDropPanelFlavor = new MaterialDataFlavor();
             
             transferable = dtde.getTransferable();
             DropTargetContext c = dtde.getDropTargetContext();
