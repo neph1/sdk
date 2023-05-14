@@ -31,10 +31,9 @@
  */
 package com.jme3.gde.assetbrowser;
 
-import com.jme3.asset.MaterialKey;
+import com.jme3.gde.assetbrowser.icons.Icons;
 import com.jme3.gde.assetbrowser.widgets.AssetPreviewWidget;
 import com.jme3.gde.core.assets.ProjectAssetManager;
-import com.jme3.gde.core.editor.icons.Icons;
 import com.jme3.gde.core.icons.IconList;
 import com.jme3.gde.core.scene.PreviewRequest;
 import com.jme3.gde.core.scene.SceneApplication;
@@ -42,8 +41,6 @@ import com.jme3.gde.core.scene.SceneListener;
 import com.jme3.gde.core.scene.SceneRequest;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.FastMath;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -70,15 +67,19 @@ import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
 
 /**
- *
+ * Helper class for generating preview images
+ * 
  * @author rickard
  */
-public class PreviewUtil {
+public class PreviewHelper {
 
-    private static final int previewSize = 150;
-    private ProjectAssetManager assetManager;
+    private static final int PREVIEW_SIZE = 150;
+    private final ProjectAssetManager assetManager;
 
-    public PreviewUtil(ProjectAssetManager assetManager) {
+    private static final Vector3f previewLocation = new Vector3f(4, 4, 7);
+    private static final Vector3f previewLookAt = new Vector3f(0, 0, 0);
+
+    public PreviewHelper(ProjectAssetManager assetManager) {
         this.assetManager = assetManager;
     }
 
@@ -99,6 +100,14 @@ public class PreviewUtil {
         return new ImageIcon(noAlpha);
     }
 
+    public Icon getSoundPreview(String asset, int size) {
+        return Icons.soundIcon;
+    }
+
+    public Icon getDefaultIcon(String asset, int size) {
+        return Icons.assetIcon;
+    }
+
     public Icon getOrCreateMaterialPreview(String asset, AssetPreviewWidget widget, int size) {
         final var icon = tryGetPreview(asset, size);
         if (icon != null) {
@@ -115,13 +124,10 @@ public class PreviewUtil {
         SceneApplication.getApplication().enqueue(() -> {
             SceneApplication.getApplication().getRenderManager().preloadScene(box);
             java.awt.EventQueue.invokeLater(() -> {
-
-                box.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.DEG_TO_RAD * 30, Vector3f.UNIT_X).multLocal(new Quaternion().fromAngleAxis(FastMath.QUARTER_PI, Vector3f.UNIT_Y)));
                 MikktspaceTangentGenerator.generate(box);
-                System.out.println("preview requested " + asset);
-                PreviewRequest request = new PreviewRequest(listener, box, 150, 150);
-                request.getCameraRequest().setLocation(new Vector3f(0, 0, 7));
-                request.getCameraRequest().setLookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Y);
+                PreviewRequest request = new PreviewRequest(listener, box, PREVIEW_SIZE, PREVIEW_SIZE);
+                request.getCameraRequest().setLocation(previewLocation);
+                request.getCameraRequest().setLookAt(previewLookAt, Vector3f.UNIT_Y);
                 SceneApplication.getApplication().createPreview(request);
             });
         });
@@ -146,9 +152,8 @@ public class PreviewUtil {
                     System.out.println("existing preview OK " + previewFile);
                     BufferedImage image = ImageIO.read(previewFile);
                     if (image != null) {
-                        return new ImageIcon(size != previewSize ? image.getScaledInstance(size, size, 0) : image);
+                        return new ImageIcon(size != PREVIEW_SIZE ? image.getScaledInstance(size, size, 0) : image);
                     }
-                    System.out.println("previewFile is null " + previewFile);
                 }
 
             } catch (IOException ex) {
@@ -176,16 +181,21 @@ public class PreviewUtil {
         SceneApplication.getApplication().enqueue(() -> {
             SceneApplication.getApplication().getRenderManager().preloadScene(spatial);
             java.awt.EventQueue.invokeLater(() -> {
-                System.out.println("preview requested " + asset);
-                PreviewRequest request = new PreviewRequest(listener, spatial, 150, 150);
-                request.getCameraRequest().setLocation(new Vector3f(4, 4, 7));
-                request.getCameraRequest().setLookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Y);
+                PreviewRequest request = new PreviewRequest(listener, spatial, PREVIEW_SIZE, PREVIEW_SIZE);
+                request.getCameraRequest().setLocation(previewLocation);
+                request.getCameraRequest().setLookAt(previewLookAt, Vector3f.UNIT_Y);
                 SceneApplication.getApplication().createPreview(request);
             });
         });
         return IconList.asset;
     }
 
+    /**
+     * Applies unshaded MatDef if spatial has no material already
+     *
+     * @param spatial
+     * @param material
+     */
     private void recurseApplyDefaultMaterial(Spatial spatial, Material material) {
         if (spatial instanceof Node) {
             ((Node) spatial).getChildren().forEach(child -> recurseApplyDefaultMaterial(child, material));
@@ -281,15 +291,17 @@ public class PreviewUtil {
         }
     };
 
-    private static BufferedImage convertImage(BufferedImage file) {
-        final int width = file.getWidth();
-        final int height = file.getHeight();
-        BufferedImage background = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = background.createGraphics();
+    private static BufferedImage convertImage(BufferedImage preview) {
+        final int width = preview.getWidth();
+        final int height = preview.getHeight();
+        BufferedImage converted = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = converted.createGraphics();
         g.setColor(Color.WHITE);
         g.fillRect(0, 0, width, height);
-        g.drawImage(file, 0, 0, null);
+        int w = preview.getWidth();
+        int h = preview.getHeight();
+        g.drawImage(preview, 0, 0, w, h, 0, h, w, 0, null);
         g.dispose();
-        return background;
+        return converted;
     }
 }

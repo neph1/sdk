@@ -38,8 +38,11 @@ import com.jme3.gde.core.properties.TexturePropertyEditor;
 import com.jme3.gde.core.properties.preview.TexturePreview;
 import com.jme3.gde.materials.MaterialProperty;
 import com.jme3.gde.core.dnd.AssetNameHolder;
+import com.jme3.gde.materials.dnd.TextureDropTargetListener;
+import com.jme3.gde.materials.dnd.TextureDropTargetListener.TextureDropTarget;
 import com.jme3.gde.materials.multiview.MaterialEditorTopComponent;
 import java.awt.Component;
+import java.awt.dnd.DropTarget;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -50,7 +53,7 @@ import java.util.logging.Logger;
  * A more compact texture panel designed for the shader node editor.
  * @author rickard
  */
-public class TexturePanelSquare extends MaterialPropertyWidget implements AssetNameHolder {
+public class TexturePanelSquare extends MaterialPropertyWidget implements TextureDropTarget {
 
     private final TexturePropertyEditor editor;
     private final ProjectAssetManager manager;
@@ -100,8 +103,7 @@ public class TexturePanelSquare extends MaterialPropertyWidget implements AssetN
             public void mouseExited(MouseEvent e) {
             }
         });
-//        setTransferHandler(TextureMoveHandler.createFor(this));
-//        setDropTarget(new DropTarget(this, new TextureNameDropTargetListener(this)));
+        setDropTarget(new DropTarget(this, new TextureDropTargetListener(this)));
     }
 
     private void displayPreview() {
@@ -310,12 +312,21 @@ public class TexturePanelSquare extends MaterialPropertyWidget implements AssetN
     // End of variables declaration//GEN-END:variables
 
     @Override
-    public String getAssetName() {
-        return textureName;
-    }
-
-    @Override
-    public void setAssetName(String name) {
-        textureName = name;
+    public void setTexture(String name) {
+        property.setValue("");
+        java.awt.EventQueue.invokeLater(() -> {
+            if(name.startsWith("\"")){
+                textureName = name;
+            } else {
+                textureName = "\"" + name + "\"";
+            }
+            property.setValue(textureName);
+            displayPreview();
+            updateFlipRepeat();
+            java.awt.EventQueue.invokeLater(() -> {
+                fireChanged();
+            });
+        });
+        
     }
 }

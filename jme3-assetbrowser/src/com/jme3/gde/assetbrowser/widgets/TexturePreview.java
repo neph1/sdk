@@ -4,8 +4,9 @@
  */
 package com.jme3.gde.assetbrowser.widgets;
 
-import com.jme3.gde.core.dnd.TextureDataFlavor;
 import com.jme3.gde.core.dnd.AssetGrabHandler;
+import com.jme3.gde.core.dnd.TextureDataFlavor;
+import javax.swing.Icon;
 
 /**
  *
@@ -13,9 +14,10 @@ import com.jme3.gde.core.dnd.AssetGrabHandler;
  */
 public class TexturePreview extends AssetPreviewWidget{
 
-    public TexturePreview(PreviewInteractionListener listener) {
-        super(listener);
+    public TexturePreview(PreviewInteractionListener listener, Icon icon) {
+        super(listener, icon);
         setTransferHandler(new AssetGrabHandler(this, new TextureDataFlavor()));
     }
+
     
 }

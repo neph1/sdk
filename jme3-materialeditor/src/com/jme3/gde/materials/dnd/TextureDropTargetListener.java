@@ -22,31 +22,32 @@ import javax.swing.JComponent;
  *
  * @author rickard
  */
-public class TextureDropTargetListener implements DropTargetListener{
+public class TextureDropTargetListener implements DropTargetListener {
 
     private static final Cursor droppableCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     private static final Cursor notDroppableCursor = Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR);
-    
-    private final TexturePanel rootPanel;
 
-    public TextureDropTargetListener(TexturePanel rootPanel) {
+    private final TextureDropTarget rootPanel;
+
+    public TextureDropTargetListener(TextureDropTarget rootPanel) {
         this.rootPanel = rootPanel;
     }
-    
+
     @Override
     public void dragEnter(DropTargetDragEvent dtde) {
     }
-    
+
     @Override
     public void dragOver(DropTargetDragEvent dtde) {
         if (!this.rootPanel.getCursor().equals(droppableCursor)) {
             this.rootPanel.setCursor(droppableCursor);
         }
     }
+
     @Override
     public void dropActionChanged(DropTargetDragEvent dtde) {
     }
-    
+
     @Override
     public void dragExit(DropTargetEvent dte) {
         this.rootPanel.setCursor(notDroppableCursor);
@@ -55,28 +56,38 @@ public class TextureDropTargetListener implements DropTargetListener{
     @Override
     public void drop(DropTargetDropEvent dtde) {
         this.rootPanel.setCursor(Cursor.getDefaultCursor());
-        
+
         Object transferableObj = null;
         try {
-            
+
             final Transferable transferable = dtde.getTransferable();
             DropTargetContext c = dtde.getDropTargetContext();
-            
+
             // What does the Transferable support
             if (transferable.isDataFlavorSupported(TextureDataFlavor.instance)) {
                 transferableObj = dtde.getTransferable().getTransferData(TextureDataFlavor.instance);
-            } 
-            
-        } catch (Exception ex) { ex.printStackTrace(); }
-        
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
         // If didn't find an item, bail
         if (transferableObj == null) {
             System.out.println("transferableObj == null");
             return;
         }
-        
+
         AssetNameHolder assetNameHolder = (AssetNameHolder) transferableObj;
-        rootPanel.setTextureName("\""+assetNameHolder.getAssetName()+"\"");
+        rootPanel.setTexture("\"" + assetNameHolder.getAssetName() + "\"");
     }
-    
+
+    public interface TextureDropTarget {
+
+        void setTexture(String texture);
+
+        void setCursor(Cursor cursor);
+
+        Cursor getCursor();
+    }
 }

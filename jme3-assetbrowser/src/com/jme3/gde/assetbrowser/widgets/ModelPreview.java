@@ -15,7 +15,7 @@ public class ModelPreview extends AssetPreviewWidget {
     
     public ModelPreview(PreviewInteractionListener listener) {
         super(listener);
-        setTransferHandler(new AssetGrabHandler<>(this, new SpatialDataFlavor()));
+        setTransferHandler(new AssetGrabHandler(this, new SpatialDataFlavor()));
     }
-    
+
 }

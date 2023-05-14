@@ -15,14 +15,10 @@ import com.jme3.gde.core.assets.ProjectAssetManager;
 import com.jme3.gde.core.properties.TexturePropertyEditor;
 import com.jme3.gde.core.properties.preview.TexturePreview;
 import com.jme3.gde.materials.MaterialProperty;
-import com.jme3.gde.core.dnd.AssetNameHolder;
-import com.jme3.gde.core.dnd.TextureDataFlavor;
-import com.jme3.gde.core.dnd.AssetGrabHandler;
-import com.jme3.gde.core.dnd.StringDataFlavor;
 import com.jme3.gde.materials.dnd.TextureDropTargetListener;
+import com.jme3.gde.materials.dnd.TextureDropTargetListener.TextureDropTarget;
 import com.jme3.gde.materials.multiview.MaterialEditorTopComponent;
 import com.jme3.gde.materials.multiview.widgets.icons.Icons;
-import com.jme3.texture.Texture;
 import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.dnd.DropTarget;
@@ -35,7 +31,7 @@ import java.util.logging.Logger;
  * The TexturePanel is a row in the material editor representing a special texture
  * @author normenhansen
  */
-public class TexturePanel extends MaterialPropertyWidget {
+public class TexturePanel extends MaterialPropertyWidget implements TextureDropTarget{
 
     private final TexturePropertyEditor editor;
     private final ProjectAssetManager manager;
@@ -329,7 +325,8 @@ public class TexturePanel extends MaterialPropertyWidget {
     private javax.swing.JLabel texturePreview;
     // End of variables declaration//GEN-END:variables
 
-    public void setTextureName(String name) {
+    @Override
+    public void setTexture(String name) {
         property.setValue("");
         java.awt.EventQueue.invokeLater(() -> {
             if(name.startsWith("\"")){

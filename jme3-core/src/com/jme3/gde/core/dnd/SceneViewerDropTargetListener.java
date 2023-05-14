@@ -57,23 +57,20 @@ public class SceneViewerDropTargetListener implements DropTargetListener{
         
         
         
-        Object transferableObj = null;
+        AssetNameHolder transferableObj = null;
         Transferable transferable = null;
-        
+        DataFlavor flavor = null;
         
         try {
             // Grab expected flavor
             
             transferable = dtde.getTransferable();
+            DataFlavor[] flavors = transferable.getTransferDataFlavors();
             
+            flavor = flavors[0];
             // What does the Transferable support
-            if (transferable.isDataFlavorSupported(SpatialDataFlavor.instance)) {
-                transferableObj = dtde.getTransferable().getTransferData(SpatialDataFlavor.instance);
-            }
-            if(transferableObj == null) {
-                if (transferable.isDataFlavorSupported(MaterialDataFlavor.instance)) {
-                    transferableObj = dtde.getTransferable().getTransferData(MaterialDataFlavor.instance);
-                }
+            if (transferable.isDataFlavorSupported(flavor)) {
+                transferableObj = (AssetNameHolder) dtde.getTransferable().getTransferData(flavor);
             }
             
         } catch (UnsupportedFlavorException | IOException ex) { ex.printStackTrace(); }
@@ -84,17 +81,14 @@ public class SceneViewerDropTargetListener implements DropTargetListener{
             return;
         }
         
-        
-        AssetNameHolder assetNameHolder = (AssetNameHolder) transferableObj;
-        
         final int dropYLoc = dtde.getLocation().y;
         final int dropXLoc = dtde.getLocation().x;
         
         // ray cast and drop model
-        if (transferable.isDataFlavorSupported(SpatialDataFlavor.instance)) {
-            rootPanel.addModel(assetNameHolder.getAssetName(), new Vector2f(dropXLoc, dropYLoc));
-        } else if(transferable.isDataFlavorSupported(MaterialDataFlavor.instance)) {
-            rootPanel.applyMaterial(assetNameHolder.getAssetName(), new Vector2f(dropXLoc, dropYLoc));
+        if (flavor instanceof SpatialDataFlavor) {
+            rootPanel.addModel(transferableObj.getAssetName(), new Vector2f(dropXLoc, dropYLoc));
+        } else if(flavor instanceof MaterialDataFlavor) {
+            rootPanel.applyMaterial(transferableObj.getAssetName(), new Vector2f(dropXLoc, dropYLoc));
         }
         
     }

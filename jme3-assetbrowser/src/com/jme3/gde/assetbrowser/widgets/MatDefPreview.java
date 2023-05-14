@@ -29,27 +29,20 @@
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jme3.gde.assetbrowser.icons;
+package com.jme3.gde.assetbrowser.widgets;
 
-import javax.swing.ImageIcon;
-import org.openide.util.ImageUtilities;
+import javax.swing.Icon;
+
 
 /**
- * Lists all icons used by the AssetBrowser
+ * A preview of a MatDef in the AssetBrowser
+ * 
  * @author rickard
  */
-public class Icons {
-    
-    public static final String ICONS_PATH = "com/jme3/gde/assetbrowser/icons/";
-    public static final String TEXTURE_REMOVE = ICONS_PATH + "remove_texture.svg";
-    // use png for asset preview
-    public static final String SOUND_WAVES = ICONS_PATH + "sound_waves.png";
-    public static final String ASSET = ICONS_PATH + "asset.png";
-    
-    public static final ImageIcon clearFilter =
-            ImageUtilities.loadImageIcon(TEXTURE_REMOVE, false);
-    public static final ImageIcon soundIcon =
-            ImageUtilities.loadImageIcon(SOUND_WAVES, false);
-    public static final ImageIcon assetIcon =
-            ImageUtilities.loadImageIcon(ASSET, false);
+public class MatDefPreview extends AssetPreviewWidget{
+
+    public MatDefPreview(PreviewInteractionListener listener, Icon icon) {
+        super(listener, icon);
+    }
+
 }

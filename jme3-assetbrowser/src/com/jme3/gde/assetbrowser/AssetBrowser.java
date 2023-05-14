@@ -33,17 +33,20 @@ package com.jme3.gde.assetbrowser;
 
 import com.jme3.gde.assetbrowser.icons.Icons;
 import com.jme3.gde.assetbrowser.widgets.AssetPreviewWidget;
+import com.jme3.gde.assetbrowser.widgets.MatDefPreview;
 import com.jme3.gde.assetbrowser.widgets.MaterialPreview;
 import com.jme3.gde.assetbrowser.widgets.ModelPreview;
 import com.jme3.gde.assetbrowser.widgets.PreviewInteractionListener;
+import com.jme3.gde.assetbrowser.widgets.SoundPreview;
 import com.jme3.gde.assetbrowser.widgets.TexturePreview;
+import com.jme3.gde.core.assets.BinaryModelDataObject;
 import com.jme3.gde.core.assets.ProjectAssetManager;
 import com.jme3.gde.core.util.ProjectSelection;
 import com.jme3.gde.materials.JMEMaterialDataObject;
 import com.jme3.gde.materials.multiview.MaterialOpenSupport;
+import com.jme3.gde.scenecomposer.OpenSceneComposer;
 import com.jme3.gde.textureeditor.JmeTextureDataObject;
 import com.jme3.gde.textureeditor.OpenTexture;
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -57,25 +60,35 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.JOptionPane;
+import org.openide.filesystems.FileAttributeEvent;
+import org.openide.filesystems.FileChangeListener;
+import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileRenameEvent;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.Exceptions;
 
 /**
- *
+ * Top component for AssetBrowser
+ * 
  * @author rickard
  */
 public class AssetBrowser extends javax.swing.JPanel implements PreviewInteractionListener {
 
+    private static final String MATERIALS = "Materials";
+    private static final String MAT_DEFS = "MatDefs";
+    private static final String MODELS = "Models";
+    private static final String TEXTURES = "Textures";
+    private static final String SOUNDS = "Sounds";
     private ProjectAssetManager assetManager;
-    private PreviewUtil previewUtil;
+    private PreviewHelper previewUtil;
     private String projectName;
 
     private int lastGridColumns = 0;
     private int lastGridRows = 0;
     private String lastFilter;
-    
+
     private int sizeX = 170;
     private int sizeY = 180;
     private int imageSize = 150;
@@ -85,26 +98,19 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
      * Creates new form AssetBrowser
      */
     public AssetBrowser() {
-        
+
         initComponents();
-        
+
         ComponentListener componentListener = new ComponentListener() {
             @Override
             public void componentResized(ComponentEvent e) {
-//                Dimension size = e.getComponent().getSize();
-//                System.out.println("component resized " + size);
                 setSize(getParent().getSize());
                 setPreferredSize(getParent().getSize());
-//                setMinimumSize(getParent().getSize());
                 getLayout().layoutContainer(AssetBrowser.this);
-                //repaint();
-
-             //revalidate();
-//jScrollPane1.setPreferredSize(getParent().getSize());
                 java.awt.EventQueue.invokeLater(() -> {
-                    
+
                     loadAssets(lastFilter);
-                    
+
                 });
             }
 
@@ -124,85 +130,106 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
 
         addComponentListener(componentListener);
     }
+
     /**
      * Will recalculate grid, and remove all previews and regenerate if rows or
      * columns or filter has changed
-     * 
+     *
      * @param filter only show previews containing filter
      */
     private void loadAssets(String filter) {
         if (assetManager == null) {
             return;
         }
-        GridBagConstraints constraints = new GridBagConstraints();
-        previewsPanel.setLayout(new GridBagLayout());
+
         Dimension size = previewsPanel.getSize();
-        
-        
+
         int rows = Math.max(size.height / sizeY, 1);
-        
+
         final var textures = Arrays.stream(assetManager.getTextures()).filter(s -> filter.isEmpty() || s.toLowerCase().contains(filter)).collect(Collectors.toList());
         final var materials = Arrays.stream(assetManager.getMaterials()).filter(s -> filter.isEmpty() || s.toLowerCase().contains(filter)).collect(Collectors.toList());
         final var models = Arrays.stream(assetManager.getModels()).filter(s -> filter.isEmpty() || s.toLowerCase().contains(filter)).collect(Collectors.toList());
-        int numAssets = textures.size() + materials.size() + models.size();
+        final var sounds = Arrays.stream(assetManager.getSounds()).filter(s -> filter.isEmpty() || s.toLowerCase().contains(filter)).collect(Collectors.toList());
+        final var matdefs = Arrays.stream(assetManager.getMatDefs()).filter(s -> filter.isEmpty() || s.toLowerCase().contains(filter)).collect(Collectors.toList());
+        int numAssets = textures.size() + materials.size() + models.size() + sounds.size() + matdefs.size();
         int columns = Math.max(numAssets / rows, 1);
-        constraints.fill = GridBagConstraints.BOTH;
-        constraints.gridx = sizeX;
-        constraints.gridy = sizeY;
-        
-        
-        
+
         Dimension newSize = new Dimension(columns * sizeX, rows * sizeY);
-        System.out.println("old size " + size + " new size " + newSize + " " + columns + " " + rows);
         if (columns != lastGridColumns || rows != lastGridRows || !lastFilter.equals(filter)) {
+            GridBagConstraints constraints = new GridBagConstraints();
+            previewsPanel.setLayout(new GridBagLayout());
+            constraints.fill = GridBagConstraints.BOTH;
+            constraints.gridx = sizeX;
+            constraints.gridy = sizeY;
             previewsPanel.removeAll();
             previewsPanel.setSize(newSize);
             previewsPanel.setPreferredSize(newSize);
-            
+
             previewsPanel.setLayout(new GridBagLayout());
-            
-            int index = addAssets(textures, "Textures", constraints, columns, rows, 0);
-            index = addAssets(materials, "Materials", constraints, columns, rows, index);
-            index = addAssets(models, "Models", constraints, columns, rows, index);
+
+            int index = addAssets(textures, TEXTURES, constraints, columns, rows, 0);
+            index = addAssets(materials, MATERIALS, constraints, columns, rows, index);
+            index = addAssets(models, MODELS, constraints, columns, rows, index);
+            index = addAssets(sounds, SOUNDS, constraints, columns, rows, index);
+            index = addAssets(matdefs, MAT_DEFS, constraints, columns, rows, index);
             lastGridColumns = columns;
             lastGridRows = rows;
             lastFilter = filter;
         }
     }
-
-    private int addAssets(List<String> items, String name, GridBagConstraints c, int columns, int rows, int startIndex) {
+    
+    /**
+     * Add assets of a specific type to the grid
+     * 
+     * @param items the assets to preview
+     * @param type type of asset
+     * @param constraints
+     * @param columns columns in the grid
+     * @param rows rows in the grid
+     * @param startIndex last used index when adding previews
+     * @return 
+     */
+    private int addAssets(List<String> items, String type, GridBagConstraints constraints, int columns, int rows, int startIndex) {
         Collections.sort(items);
         int index = startIndex;
         for (String item : items) {
             AssetPreviewWidget preview = null;
-            
-            c.gridx = index % columns;
-            c.gridy = (int) (((float)index) / columns);
-            if (name.startsWith("Textures")) {
-                preview = new TexturePreview(this);
-                preview.setPreviewImage(previewUtil.getOrCreateTexturePreview(item, imageSize));
-            } else if (name.startsWith("Materials")) {
+
+            constraints.gridx = index % columns;
+            constraints.gridy = (int) (((float) index) / columns);
+            if (type.startsWith(TEXTURES)) {
+                preview = new TexturePreview(this, previewUtil.getOrCreateTexturePreview(item, imageSize));
+            } else if (type.startsWith(MATERIALS)) {
                 preview = new MaterialPreview(this);
                 preview.setPreviewImage(previewUtil.getOrCreateMaterialPreview(item, preview, imageSize));
-            } else if (name.startsWith("Models")) {
+            } else if (type.startsWith(MODELS)) {
                 preview = new ModelPreview(this);
                 preview.setPreviewImage(previewUtil.getOrCreateModelPreview(item, preview, imageSize));
+            } else if (type.startsWith(SOUNDS)) {
+                preview = new SoundPreview(this, previewUtil.getSoundPreview(item, imageSize));
+            } else if (type.startsWith(MAT_DEFS)) {
+                preview = new MatDefPreview(this, previewUtil.getDefaultIcon(item, imageSize));
             }
-            if(preview == null) {
+            if (preview == null) {
                 continue;
             }
             preview.setMinimumSize(new Dimension(sizeX, sizeY));
             preview.setPreferredSize(new Dimension(sizeX, sizeY));
-            if(assetManager.getAbsoluteAssetPath(item) != null) {
+            if (assetManager.getAbsoluteAssetPath(item) != null) {
                 preview.setEditable(true);
             }
             preview.setPreviewName(item);
-            previewsPanel.add(preview, c);
+            previewsPanel.add(preview, constraints);
             index++;
         }
         return index;
     }
 
+    /**
+     * Creates the base folder for previews in the project directory
+     * 
+     * @param assetManager 
+     */
     private void createAssetBrowserFolder(ProjectAssetManager assetManager) {
         FileObject fileObject = assetManager.getProject().getProjectDirectory();
         File file = new File(fileObject.getPath(), ".assetBrowser/");
@@ -257,9 +284,12 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
         add(jScrollPane1);
 
         jPanel2.setMaximumSize(new java.awt.Dimension(2147483647, 23));
+        jPanel2.setMinimumSize(new java.awt.Dimension(104, 33));
+        jPanel2.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEADING));
 
         filterField.setText(org.openide.util.NbBundle.getMessage(AssetBrowser.class, "AssetBrowser.filterField.text")); // NOI18N
-        filterField.setMinimumSize(new java.awt.Dimension(100, 23));
+        filterField.setToolTipText(org.openide.util.NbBundle.getMessage(AssetBrowser.class, "AssetBrowser.filterField.toolTipText")); // NOI18N
+        filterField.setMinimumSize(new java.awt.Dimension(40, 23));
         filterField.setPreferredSize(new java.awt.Dimension(250, 23));
         filterField.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
@@ -310,21 +340,59 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
         add(jPanel2);
     }// </editor-fold>//GEN-END:initComponents
 
+    /**
+     * Select project to view
+     * 
+     * @param evt 
+     */
     private void projectLabelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_projectLabelMouseClicked
         assetManager = ProjectSelection.getProjectAssetManager("Select project");
         projectName = assetManager.getProject().getProjectDirectory().getName();
         projectLabel.setText(projectName);
-        previewUtil = new PreviewUtil(assetManager);      
+        previewUtil = new PreviewHelper(assetManager);
         createAssetBrowserFolder(assetManager);
+        // Check which assets was added/deleted/renamed/changed? Nah, just load
+        // everything!
+        assetManager.getAssetFolder().addRecursiveListener(new FileChangeListener() {
+            @Override
+            public void fileFolderCreated(FileEvent fe) {
+                loadAssets(lastFilter);
+            }
+
+            @Override
+            public void fileDataCreated(FileEvent fe) {
+                loadAssets(lastFilter);
+            }
+
+            @Override
+            public void fileChanged(FileEvent fe) {
+                loadAssets(lastFilter);
+            }
+
+            @Override
+            public void fileDeleted(FileEvent fe) {
+                loadAssets(lastFilter);
+            }
+
+            @Override
+            public void fileRenamed(FileRenameEvent fre) {
+                loadAssets(lastFilter);
+            }
+
+            @Override
+            public void fileAttributeChanged(FileAttributeEvent fae) {
+                loadAssets(lastFilter);
+            }
+        });
         loadAssets("");
     }//GEN-LAST:event_projectLabelMouseClicked
 
     private void filterFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_filterFieldFocusLost
-        
+
     }//GEN-LAST:event_filterFieldFocusLost
 
     private void filterFieldKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_filterFieldKeyPressed
-        if(evt.getKeyCode() == KeyEvent.VK_TAB || evt.getKeyCode() == KeyEvent.VK_ENTER) {
+        if (evt.getKeyCode() == KeyEvent.VK_TAB || evt.getKeyCode() == KeyEvent.VK_ENTER) {
             previewsPanel.requestFocusInWindow();
             loadAssets(filterField.getText().toLowerCase());
         }
@@ -339,18 +407,23 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
         // TODO add your handling code here:
     }//GEN-LAST:event_filterFieldActionPerformed
 
+    /**
+     * Change size of previews
+     * 
+     * @param evt 
+     */
     private void sizeSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sizeSliderStateChanged
-        final var value = sizeSlider.getValue(); 
-        switch(value) {
+        final var value = sizeSlider.getValue();
+        switch (value) {
             case 0:
                 sizeX = (int) (170 * 0.5f);
                 sizeY = (int) (180 * 0.5f);
-                imageSize = (int) (150 * 0.5f); 
+                imageSize = (int) (150 * 0.5f);
                 break;
             case 1:
                 sizeX = (int) (170 * 0.75f);
                 sizeY = (int) (180 * 0.75f);
-                imageSize = (int) (150 * 0.75f); 
+                imageSize = (int) (150 * 0.75f);
                 break;
             case 2:
                 sizeX = 170;
@@ -358,7 +431,7 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
                 imageSize = 150;
                 break;
         }
-        if(value != oldSliderValue) {
+        if (value != oldSliderValue) {
             loadAssets(lastFilter);
             oldSliderValue = value;
         }
@@ -382,6 +455,10 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
     private javax.swing.JSlider sizeSlider;
     // End of variables declaration//GEN-END:variables
 
+    
+    /**
+     * Double click an asset to open it (if supported)
+     */
     @Override
     public void openAsset(AssetPreviewWidget widget) {
         FileObject pf = assetManager.getAssetFileObject(widget.getPreviewName());
@@ -401,6 +478,14 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
                 Exceptions.printStackTrace(ex);
             }
 
+        } else if (widget instanceof ModelPreview) {
+            try {
+                BinaryModelDataObject model = (BinaryModelDataObject) DataObject.find(pf);
+                OpenSceneComposer openScene = new OpenSceneComposer(model);
+                openScene.actionPerformed(null);
+            } catch (DataObjectNotFoundException ex) {
+                Exceptions.printStackTrace(ex);
+            }
         } else {
             JOptionPane.showMessageDialog(null, "Not yet supported");
         }
@@ -408,14 +493,19 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
 
     @Override
     public void refreshPreview(AssetPreviewWidget widget) {
-        
+
     }
 
     @Override
     public void deleteAsset(AssetPreviewWidget widget) {
         int result = JOptionPane.showConfirmDialog(null, "Delete asset? " + widget.getAssetName());
-        if(result == JOptionPane.OK_OPTION) {
-            
+        if (result == JOptionPane.OK_OPTION) {
+            FileObject pf = assetManager.getAssetFileObject(widget.getPreviewName());
+            try {
+                pf.delete();
+            } catch (IOException ex) {
+                Exceptions.printStackTrace(ex);
+            }
         }
     }
 

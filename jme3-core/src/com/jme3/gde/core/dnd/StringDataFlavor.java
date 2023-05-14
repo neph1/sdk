@@ -13,9 +13,6 @@ import javax.swing.JPanel;
  */
 public class StringDataFlavor extends DataFlavor {
 
-    // This saves me having to make lots of copies of the same thing
-//    public static final StringDataFlavor SHARED_INSTANCE = new StringDataFlavor();
-
     public StringDataFlavor() {
 
         super("text/plain", null);

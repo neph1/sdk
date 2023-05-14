@@ -44,7 +44,7 @@ public class AssetGrabHandler<T extends DataFlavor> extends TransferHandler {
 
     @Override
     public boolean canImport(TransferSupport info) {
-        System.out.println("canImport " + info.isDataFlavorSupported(flavor));
+        System.out.println("canImport " + info.isDataFlavorSupported(flavor) + " " + flavor);
         return info.isDataFlavorSupported(flavor);
     }
 
