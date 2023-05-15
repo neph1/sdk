@@ -44,19 +44,15 @@ public class AssetGrabHandler<T extends DataFlavor> extends TransferHandler {
 
     @Override
     public boolean canImport(TransferSupport info) {
-        System.out.println("canImport " + info.isDataFlavorSupported(flavor) + " " + flavor);
         return info.isDataFlavorSupported(flavor);
     }
 
     @Override
     public boolean importData(TransferSupport transferSupport) {
         Transferable t = transferSupport.getTransferable();
-        System.out.println("importData 1 ");
         boolean success = false;
         try {
             String importedData = (String) t.getTransferData(flavor);
-
-            System.out.println("importData " + importedData);
 //                addToListModel(importedData);
             success = true;
         } catch (UnsupportedFlavorException | IOException e) {
