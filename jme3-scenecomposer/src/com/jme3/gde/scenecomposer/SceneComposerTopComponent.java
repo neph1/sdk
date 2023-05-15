@@ -9,9 +9,6 @@ import com.jme3.effect.ParticleEmitter;
 import com.jme3.gde.core.assets.AssetDataObject;
 import com.jme3.gde.core.assets.ProjectAssetManager;
 import com.jme3.gde.core.assets.SpatialAssetDataObject;
-import com.jme3.gde.core.dnd.AssetGrabHandler;
-import com.jme3.gde.core.dnd.AssetNameHolder;
-import com.jme3.gde.core.dnd.MaterialDataFlavor;
 import com.jme3.gde.core.scene.PreviewRequest;
 import com.jme3.gde.core.scene.SceneApplication;
 import com.jme3.gde.core.scene.SceneListener;
@@ -28,9 +25,7 @@ import com.jme3.gde.scenecomposer.tools.MoveTool;
 import com.jme3.gde.scenecomposer.tools.RotateTool;
 import com.jme3.gde.scenecomposer.tools.ScaleTool;
 import com.jme3.gde.scenecomposer.tools.SelectTool;
-import com.jme3.material.Material;
 import com.jme3.math.FastMath;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
@@ -96,7 +91,6 @@ public final class SceneComposerTopComponent extends TopComponent implements
         setToolTipText(NbBundle.getMessage(SceneComposerTopComponent.class, "HINT_SceneComposerTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
         result = Utilities.actionsGlobalContext().lookupResult(AbstractSceneExplorerNode.class);
-        
     }
 
     /**
@@ -1260,7 +1254,7 @@ private void jToggleSelectGeomActionPerformed(java.awt.event.ActionEvent evt) {/
             displayInfo("No scene opened!");
         }
     }
-    
+
     public void linkModel(AssetManager manager, String assetName) {
         if (editorController != null) {
             editorController.linkModel(manager, assetName, toolController.getCursorLocation());
@@ -1484,5 +1478,4 @@ private void jToggleSelectGeomActionPerformed(java.awt.event.ActionEvent evt) {/
             cursorPositionLabel.setText(location.toString());
         });
     }
-  
 }

@@ -6,7 +6,7 @@
             <file name="com-jme3-gde-scenecomposer-OpenSceneComposer.instance">
                 <attr name="delegate" methodvalue="org.openide.awt.Actions.inject"/>
                 <attr name="displayName" bundlevalue="com.jme3.gde.scenecomposer.Bundle#CTL_OpenSceneComposer"/>
-                <attr name="iconBase" stringvalue="com/jme3/gde/core/icons/jaime_silhouette.svg"/>
+                <attr name="iconBase" stringvalue="com/jme3/gde/scenecomposer/jme-logo.png"/>
                 <attr name="injectable" stringvalue="com.jme3.gde.scenecomposer.OpenSceneComposer"/>
                 <attr name="instanceCreate" methodvalue="org.openide.awt.Actions.context"/>
                 <attr name="noIconInMenu" boolvalue="false"/>
@@ -16,7 +16,7 @@
             <file name="com-jme3-gde-scenecomposer-AddSceneComposer.instance">
                 <attr name="delegate" methodvalue="org.openide.awt.Actions.inject"/>
                 <attr name="displayName" bundlevalue="com.jme3.gde.scenecomposer.Bundle#CTL_AddSceneComposer"/>
-                <attr name="iconBase" stringvalue="com/jme3/gde/scenecomposer/icons/add.svg"/>
+                <attr name="iconBase" stringvalue="com/jme3/gde/scenecomposer/add.gif"/>
                 <attr name="injectable" stringvalue="com.jme3.gde.scenecomposer.AddSceneComposer"/>
                 <attr name="instanceCreate" methodvalue="org.openide.awt.Actions.context"/>
                 <attr name="noIconInMenu" boolvalue="false"/>
@@ -26,7 +26,7 @@
             <file name="com-jme3-gde-scenecomposer-LinkSceneComposer.instance">
                 <attr name="delegate" methodvalue="org.openide.awt.Actions.inject"/>
                 <attr name="displayName" bundlevalue="com.jme3.gde.scenecomposer.Bundle#CTL_LinkSceneComposer"/>
-                <attr name="iconBase" stringvalue="com/jme3/gde/core/icons/sideswipe.svg"/>
+                <attr name="iconBase" stringvalue="com/jme3/gde/scenecomposer/link.gif"/>
                 <attr name="injectable" stringvalue="com.jme3.gde.scenecomposer.LinkSceneComposer"/>
                 <attr name="instanceCreate" methodvalue="org.openide.awt.Actions.context"/>
                 <attr name="noIconInMenu" boolvalue="false"/>
@@ -47,7 +47,7 @@
         <folder name="application">
             <folder name="jme3model">
                 <folder name="Actions">
-<!--                    <file name="com-jme3-gde-scenecomposer-OpenSceneComposer.shadow">
+                    <file name="com-jme3-gde-scenecomposer-OpenSceneComposer.shadow">
                         <attr name="originalFile" stringvalue="Actions/SceneComposer/com-jme3-gde-scenecomposer-OpenSceneComposer.instance"/>
                         <attr name="position" intvalue="10"/>
                     </file>
@@ -62,7 +62,7 @@
                     <file name="scenecomposer_sep-2.instance">
                         <attr name="instanceClass" stringvalue="javax.swing.JSeparator"/>
                         <attr name="position" intvalue="40"/>
-                    </file>-->
+                    </file>
                 </folder>
             </folder>
         </folder>
