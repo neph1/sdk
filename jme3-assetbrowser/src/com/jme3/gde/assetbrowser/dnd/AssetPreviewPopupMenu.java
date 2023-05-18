@@ -5,23 +5,17 @@
 package com.jme3.gde.assetbrowser.dnd;
 
 import java.awt.event.ActionListener;
-import javax.help.plaf.basic.BasicFavoritesNavigatorUI;
-import javax.swing.AbstractAction;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.event.PopupMenuListener;
-import org.openide.actions.DeleteAction;
-import org.openide.util.actions.SystemAction;
 
 /**
- *
+ * Pop up menu for actions on asset previews
+ * 
  * @author rickard
  */
 public class AssetPreviewPopupMenu extends JPopupMenu{
     
     public AssetPreviewPopupMenu(ActionListener listener){
         add("Refresh").addActionListener(listener);
-        add(SystemAction.get(DeleteAction.class));
+        add("Delete").addActionListener(listener);
     }
 }

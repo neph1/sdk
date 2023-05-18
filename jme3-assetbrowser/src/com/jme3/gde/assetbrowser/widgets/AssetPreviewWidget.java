@@ -175,7 +175,7 @@ public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListe
                 listener.refreshPreview(this);
                 break;
             case "Delete":
-                
+                listener.deleteAsset(this);
                 break;
         }
     }

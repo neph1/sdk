@@ -493,9 +493,12 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
 
     @Override
     public void refreshPreview(AssetPreviewWidget widget) {
-
+        // not yet implemented
     }
 
+    /**
+     * Delete the asset
+     */
     @Override
     public void deleteAsset(AssetPreviewWidget widget) {
         int result = JOptionPane.showConfirmDialog(null, "Delete asset? " + widget.getAssetName());
