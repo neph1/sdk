@@ -137,19 +137,19 @@ public class PreviewHelper {
     private Icon tryGetPreview(String asset, int size) {
         final var assetPath = assetManager.getAbsoluteAssetPath(asset);
 
-        FileTime assetModificationTime = getAssetModificationTime(assetPath);
+        final FileTime assetModificationTime = getAssetModificationTime(assetPath);
 
-        File previewFile = loadPreviewFile(assetManager, asset.split("\\.")[0]);
+        final File previewFile = loadPreviewFile(assetManager, asset.split("\\.")[0]);
 
         if (previewFile != null && assetModificationTime != null) {
-            Path previewPath = previewFile.toPath();
+            final Path previewPath = previewFile.toPath();
             if(previewPath == null) {
                 return null;
             }
             try {
-                BasicFileAttributes previewAttributes = Files.readAttributes(
+                final BasicFileAttributes previewAttributes = Files.readAttributes(
                         previewPath, BasicFileAttributes.class);
-                FileTime previewCreationTime = previewAttributes.creationTime();
+                final FileTime previewCreationTime = previewAttributes.creationTime();
 
                 if (previewCreationTime.compareTo(assetModificationTime) > 0) {
                     System.out.println("existing preview OK " + previewFile);

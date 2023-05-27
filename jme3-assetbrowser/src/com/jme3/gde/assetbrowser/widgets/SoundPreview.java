@@ -33,12 +33,12 @@ package com.jme3.gde.assetbrowser.widgets;
 
 import javax.swing.Icon;
 
-
 /**
  * Displaying a preview of a sound in the AssetBrowser
+ *
  * @author rickard
  */
-public class SoundPreview extends AssetPreviewWidget{
+public class SoundPreview extends AssetPreviewWidget {
 
     public SoundPreview(PreviewInteractionListener listener, Icon icon) {
         super(listener, icon);

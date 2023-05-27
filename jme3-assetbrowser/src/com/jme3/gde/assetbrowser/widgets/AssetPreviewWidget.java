@@ -43,29 +43,29 @@ import java.awt.event.ActionListener;
 import javax.swing.Icon;
 
 /**
- * Displays an asset as an image in the AssetBrowser and handles open action 
- * and dragging (if supported)
- * 
+ * Displays an asset as an image in the AssetBrowser and handles open action and
+ * dragging (if supported)
+ *
  * @author rickard
  */
 public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListener, AssetNameHolder, ActionListener {
 
     private boolean editable;
     private PreviewInteractionListener listener;
-    
+
     /**
      * Creates new form AssetPreviewWidget
      */
     public AssetPreviewWidget() {
         initComponents();
     }
-    
-    public AssetPreviewWidget(PreviewInteractionListener listener, Icon icon) {
+
+    public AssetPreviewWidget(final PreviewInteractionListener listener, Icon icon) {
         this(listener);
         assetPreviewLabel.setIcon(icon);
     }
-    
-    public AssetPreviewWidget(PreviewInteractionListener listener) {
+
+    public AssetPreviewWidget(final PreviewInteractionListener listener) {
         this();
         this.listener = listener;
         final var mouseListener = new AssetPreviewWidgetMouseListener(this, listener);
@@ -82,11 +82,11 @@ public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListe
         assetNameLabel.setText(name);
         setToolTipText(name);
     }
-    
+
     public String getPreviewName() {
         return assetNameLabel.getText();
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -123,7 +123,6 @@ public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListe
 
     }//GEN-LAST:event_formMousePressed
 
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel assetNameLabel;
     private javax.swing.JLabel assetPreviewLabel;
@@ -159,18 +158,18 @@ public class AssetPreviewWidget extends javax.swing.JPanel implements SceneListe
     public void setAssetName(String name) {
         assetNameLabel.setText(name);
     }
-    
+
     public void setEditable(boolean editable) {
         this.editable = editable;
     }
-    
+
     public boolean isEditable() {
         return editable;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        switch(e.getActionCommand()) {
+        switch (e.getActionCommand()) {
             case "Refresh":
                 listener.refreshPreview(this);
                 break;

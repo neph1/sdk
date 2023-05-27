@@ -12,12 +12,11 @@ import javax.swing.Icon;
  *
  * @author rickard
  */
-public class TexturePreview extends AssetPreviewWidget{
+public class TexturePreview extends AssetPreviewWidget {
 
     public TexturePreview(PreviewInteractionListener listener, Icon icon) {
         super(listener, icon);
         setTransferHandler(new AssetGrabHandler(this, new TextureDataFlavor()));
     }
 
-    
 }

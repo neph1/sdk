@@ -33,13 +33,12 @@ package com.jme3.gde.assetbrowser.widgets;
 
 import javax.swing.Icon;
 
-
 /**
  * A preview of a MatDef in the AssetBrowser
- * 
+ *
  * @author rickard
  */
-public class MatDefPreview extends AssetPreviewWidget{
+public class MatDefPreview extends AssetPreviewWidget {
 
     public MatDefPreview(PreviewInteractionListener listener, Icon icon) {
         super(listener, icon);

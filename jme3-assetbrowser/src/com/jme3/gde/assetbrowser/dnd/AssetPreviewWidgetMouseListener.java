@@ -38,11 +38,11 @@ import javax.swing.JOptionPane;
 import javax.swing.TransferHandler;
 
 /**
- * For handling drag and drop of assets
+ * For handling drag and drop of assets.
  *
  * @author rickard
  */
-public class AssetPreviewWidgetMouseListener extends MouseAdapter {
+public final class AssetPreviewWidgetMouseListener extends MouseAdapter {
 
     private final AssetPreviewWidget previewWidget;
     private final PreviewInteractionListener listener;
@@ -53,7 +53,8 @@ public class AssetPreviewWidgetMouseListener extends MouseAdapter {
         this.listener = listener;
     }
 
-    public void mouseClicked(java.awt.event.MouseEvent evt) {
+    @Override
+    public void mouseClicked(final java.awt.event.MouseEvent evt) {
         if (evt.getClickCount() == 2) {
             evt.consume();
             if (previewWidget.isEditable()) {
@@ -64,21 +65,24 @@ public class AssetPreviewWidgetMouseListener extends MouseAdapter {
         }
     }
 
-    public void mousePressed(java.awt.event.MouseEvent evt) {
+    @Override
+    public void mousePressed(final java.awt.event.MouseEvent evt) {
         pressed = true;
 
     }
 
-    public void mouseReleased(java.awt.event.MouseEvent evt) {
-
+    @Override
+    public void mouseReleased(final java.awt.event.MouseEvent evt) {
         pressed = false;
         moved = false;
     }
 
-    public void mouseMoved(java.awt.event.MouseEvent evt) {
+    @Override
+    public void mouseMoved(final java.awt.event.MouseEvent evt) {
     }
 
-    public void mouseDragged(java.awt.event.MouseEvent evt) {
+    @Override
+    public void mouseDragged(final java.awt.event.MouseEvent evt) {
         if (pressed) {
             moved = true;
             TransferHandler handler = previewWidget.getTransferHandler();

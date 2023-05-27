@@ -21,31 +21,32 @@ import java.io.IOException;
  *
  * @author rickard
  */
-public class SceneViewerDropTargetListener implements DropTargetListener{
+public class SceneViewerDropTargetListener implements DropTargetListener {
 
     private static final Cursor droppableCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     private static final Cursor notDroppableCursor = Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR);
-    
+
     private final SceneViewerTopComponent rootPanel;
 
     public SceneViewerDropTargetListener(SceneViewerTopComponent rootPanel) {
         this.rootPanel = rootPanel;
     }
-    
+
     @Override
     public void dragEnter(DropTargetDragEvent dtde) {
     }
-    
+
     @Override
     public void dragOver(DropTargetDragEvent dtde) {
         if (!this.rootPanel.getCursor().equals(droppableCursor)) {
             this.rootPanel.setCursor(droppableCursor);
         }
     }
+
     @Override
     public void dropActionChanged(DropTargetDragEvent dtde) {
     }
-    
+
     @Override
     public void dragExit(DropTargetEvent dte) {
         this.rootPanel.setCursor(notDroppableCursor);
@@ -54,43 +55,43 @@ public class SceneViewerDropTargetListener implements DropTargetListener{
     @Override
     public void drop(DropTargetDropEvent dtde) {
         this.rootPanel.setCursor(Cursor.getDefaultCursor());
-        
-        
-        
+
         AssetNameHolder transferableObj = null;
         Transferable transferable = null;
         DataFlavor flavor = null;
-        
+
         try {
             // Grab expected flavor
-            
+
             transferable = dtde.getTransferable();
             DataFlavor[] flavors = transferable.getTransferDataFlavors();
-            
+
             flavor = flavors[0];
             // What does the Transferable support
             if (transferable.isDataFlavorSupported(flavor)) {
                 transferableObj = (AssetNameHolder) dtde.getTransferable().getTransferData(flavor);
             }
-            
-        } catch (UnsupportedFlavorException | IOException ex) { ex.printStackTrace(); }
-        
+
+        } catch (UnsupportedFlavorException | IOException ex) {
+            ex.printStackTrace();
+        }
+
         // If didn't find an item, bail
         if (transferable == null || transferableObj == null) {
             System.out.println("transferableObj == null");
             return;
         }
-        
+
         final int dropYLoc = dtde.getLocation().y;
         final int dropXLoc = dtde.getLocation().x;
-        
+
         // ray cast and drop model
         if (flavor instanceof SpatialDataFlavor) {
             rootPanel.addModel(transferableObj.getAssetName(), new Vector2f(dropXLoc, dropYLoc));
-        } else if(flavor instanceof MaterialDataFlavor) {
+        } else if (flavor instanceof MaterialDataFlavor) {
             rootPanel.applyMaterial(transferableObj.getAssetName(), new Vector2f(dropXLoc, dropYLoc));
         }
-        
+
     }
-    
+
 }
