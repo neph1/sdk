@@ -45,8 +45,10 @@ import com.jme3.gde.core.util.ProjectSelection;
 import com.jme3.gde.materials.JMEMaterialDataObject;
 import com.jme3.gde.materials.multiview.MaterialOpenSupport;
 import com.jme3.gde.scenecomposer.OpenSceneComposer;
+import com.jme3.gde.scenecomposer.SceneComposerTopComponent;
 import com.jme3.gde.textureeditor.JmeTextureDataObject;
 import com.jme3.gde.textureeditor.OpenTexture;
+import com.jme3.scene.Spatial;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -60,6 +62,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.JOptionPane;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.filesystems.FileAttributeEvent;
 import org.openide.filesystems.FileChangeListener;
 import org.openide.filesystems.FileEvent;
@@ -71,7 +75,7 @@ import org.openide.util.Exceptions;
 
 /**
  * Top component for AssetBrowser
- * 
+ *
  * @author rickard
  */
 public class AssetBrowser extends javax.swing.JPanel implements PreviewInteractionListener {
@@ -89,19 +93,13 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
     private int lastGridRows = 0;
     private String lastFilter;
 
-    private int sizeX = 170;
-    private int sizeY = 180;
-    private int imageSize = 150;
+    private int sizeX = Constants.sizeX;
+    private int sizeY = Constants.sizeY;
+    private int imageSize = Constants.imageSize;
     private int oldSliderValue = 2;
 
-    /**
-     * Creates new form AssetBrowser
-     */
-    public AssetBrowser() {
-
-        initComponents();
-
-        ComponentListener componentListener = new ComponentListener() {
+    private boolean componentListenerAdded = false;
+    private ComponentListener resizeListener = new ComponentListener() {
             @Override
             public void componentResized(ComponentEvent e) {
                 setSize(getParent().getSize());
@@ -128,7 +126,14 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
             }
         };
 
-        addComponentListener(componentListener);
+    /**
+     * Creates new form AssetBrowser
+     */
+    public AssetBrowser() {
+
+        initComponents();
+        
+        addComponentListener(resizeListener);
     }
 
     /**
@@ -142,9 +147,15 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
             return;
         }
 
+        // this is required to make the panel resize
+        if (!componentListenerAdded && getParent() != null) {
+            getParent().addComponentListener(resizeListener);
+            componentListenerAdded = true;
+            removeComponentListener(resizeListener);
+        }
         Dimension size = previewsPanel.getSize();
 
-        int rows = Math.max(size.height / sizeY, 1);
+        int rows = Math.min(size.height, getHeight() - 30) / sizeY;
 
         final var textures = Arrays.stream(assetManager.getTextures()).filter(s -> filter.isEmpty() || s.toLowerCase().contains(filter)).collect(Collectors.toList());
         final var materials = Arrays.stream(assetManager.getMaterials()).filter(s -> filter.isEmpty() || s.toLowerCase().contains(filter)).collect(Collectors.toList());
@@ -177,17 +188,17 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
             lastFilter = filter;
         }
     }
-    
+
     /**
      * Add assets of a specific type to the grid
-     * 
+     *
      * @param items the assets to preview
      * @param type type of asset
      * @param constraints
      * @param columns columns in the grid
      * @param rows rows in the grid
      * @param startIndex last used index when adding previews
-     * @return 
+     * @return
      */
     private int addAssets(List<String> items, String type, GridBagConstraints constraints, int columns, int rows, int startIndex) {
         Collections.sort(items);
@@ -196,7 +207,7 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
             AssetPreviewWidget preview = null;
 
             constraints.gridx = index % columns;
-            constraints.gridy = (int) (((float) index) / columns);
+            constraints.gridy = (int) (((float) index-1) / (columns));
             if (type.startsWith(TEXTURES)) {
                 preview = new TexturePreview(this, previewUtil.getOrCreateTexturePreview(item, imageSize));
             } else if (type.startsWith(MATERIALS)) {
@@ -227,8 +238,8 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
 
     /**
      * Creates the base folder for previews in the project directory
-     * 
-     * @param assetManager 
+     *
+     * @param assetManager
      */
     private void createAssetBrowserFolder(ProjectAssetManager assetManager) {
         FileObject fileObject = assetManager.getProject().getProjectDirectory();
@@ -267,6 +278,7 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
         projectLabel.setAlignmentX(0.5F);
         projectLabel.setAlignmentY(0.0F);
         projectLabel.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+        projectLabel.setMaximumSize(new java.awt.Dimension(32000, 32000));
         projectLabel.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 projectLabelMouseClicked(evt);
@@ -342,8 +354,8 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
 
     /**
      * Select project to view
-     * 
-     * @param evt 
+     *
+     * @param evt
      */
     private void projectLabelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_projectLabelMouseClicked
         assetManager = ProjectSelection.getProjectAssetManager("Select project");
@@ -409,26 +421,26 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
 
     /**
      * Change size of previews
-     * 
-     * @param evt 
+     *
+     * @param evt
      */
     private void sizeSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sizeSliderStateChanged
         final var value = sizeSlider.getValue();
         switch (value) {
             case 0:
-                sizeX = (int) (170 * 0.5f);
-                sizeY = (int) (180 * 0.5f);
-                imageSize = (int) (150 * 0.5f);
+                sizeX = (int) (Constants.sizeX * 0.5f);
+                sizeY = (int) (Constants.sizeY * 0.5f);
+                imageSize = (int) (Constants.imageSize * 0.5f);
                 break;
             case 1:
-                sizeX = (int) (170 * 0.75f);
-                sizeY = (int) (180 * 0.75f);
-                imageSize = (int) (150 * 0.75f);
+                sizeX = (int) (Constants.sizeY * 0.75f);
+                sizeY = (int) (Constants.sizeX * 0.75f);
+                imageSize = (int) (Constants.imageSize * 0.75f);
                 break;
             case 2:
-                sizeX = 170;
-                sizeY = 180;
-                imageSize = 150;
+                sizeX = Constants.sizeY;
+                sizeY = Constants.sizeX;
+                imageSize = Constants.imageSize;
                 break;
         }
         if (value != oldSliderValue) {
@@ -455,7 +467,6 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
     private javax.swing.JSlider sizeSlider;
     // End of variables declaration//GEN-END:variables
 
-    
     /**
      * Double click an asset to open it (if supported)
      */
@@ -481,8 +492,24 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
         } else if (widget instanceof ModelPreview) {
             try {
                 BinaryModelDataObject model = (BinaryModelDataObject) DataObject.find(pf);
-                OpenSceneComposer openScene = new OpenSceneComposer(model);
-                openScene.actionPerformed(null);
+                Runnable call = () -> {
+                    assetManager.clearCache();
+                    final Spatial asset = model.loadAsset();
+                    if (asset != null) {
+                        java.awt.EventQueue.invokeLater(() -> {
+                            SceneComposerTopComponent composer = SceneComposerTopComponent.findInstance();
+                            composer.openScene(asset, model, assetManager);
+                        });
+                    } else {
+                        NotifyDescriptor.Confirmation msg = new NotifyDescriptor.Confirmation(
+                                "Error opening " + model.getPrimaryFile().getNameExt(),
+                                NotifyDescriptor.OK_CANCEL_OPTION,
+                                NotifyDescriptor.ERROR_MESSAGE);
+                        DialogDisplayer.getDefault().notify(msg);
+                    }
+
+                };
+                new Thread(call).start();
             } catch (DataObjectNotFoundException ex) {
                 Exceptions.printStackTrace(ex);
             }

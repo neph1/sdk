@@ -143,6 +143,9 @@ public class PreviewHelper {
 
         if (previewFile != null && assetModificationTime != null) {
             Path previewPath = previewFile.toPath();
+            if(previewPath == null) {
+                return null;
+            }
             try {
                 BasicFileAttributes previewAttributes = Files.readAttributes(
                         previewPath, BasicFileAttributes.class);
@@ -262,7 +265,7 @@ public class PreviewHelper {
 
         final AssetPreviewWidget widget;
         final ProjectAssetManager assetManager;
-        private String assetName;
+        private final String assetName;
 
         public PreviewListener(ProjectAssetManager assetManager, String assetName, AssetPreviewWidget widget) {
             this.widget = widget;
