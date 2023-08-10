@@ -10,15 +10,17 @@ import java.awt.Cursor;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.dnd.DropTargetContext;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- *
+ * Handles dropping Materials or Spatial from the AssetBrowser to the
+ * SceneViewer
  * @author rickard
  */
 public class SceneViewerDropTargetListener implements DropTargetListener {
@@ -28,16 +30,16 @@ public class SceneViewerDropTargetListener implements DropTargetListener {
 
     private final SceneViewerTopComponent rootPanel;
 
-    public SceneViewerDropTargetListener(SceneViewerTopComponent rootPanel) {
+    public SceneViewerDropTargetListener(final SceneViewerTopComponent rootPanel) {
         this.rootPanel = rootPanel;
     }
 
     @Override
-    public void dragEnter(DropTargetDragEvent dtde) {
+    public void dragEnter(final DropTargetDragEvent dtde) {
     }
 
     @Override
-    public void dragOver(DropTargetDragEvent dtde) {
+    public void dragOver(final DropTargetDragEvent dtde) {
         if (!this.rootPanel.getCursor().equals(droppableCursor)) {
             this.rootPanel.setCursor(droppableCursor);
         }
@@ -48,12 +50,12 @@ public class SceneViewerDropTargetListener implements DropTargetListener {
     }
 
     @Override
-    public void dragExit(DropTargetEvent dte) {
+    public void dragExit(final DropTargetEvent dte) {
         this.rootPanel.setCursor(notDroppableCursor);
     }
 
     @Override
-    public void drop(DropTargetDropEvent dtde) {
+    public void drop(final DropTargetDropEvent dtde) {
         this.rootPanel.setCursor(Cursor.getDefaultCursor());
 
         AssetNameHolder transferableObj = null;
@@ -61,10 +63,8 @@ public class SceneViewerDropTargetListener implements DropTargetListener {
         DataFlavor flavor = null;
 
         try {
-            // Grab expected flavor
-
             transferable = dtde.getTransferable();
-            DataFlavor[] flavors = transferable.getTransferDataFlavors();
+            final DataFlavor[] flavors = transferable.getTransferDataFlavors();
 
             flavor = flavors[0];
             // What does the Transferable support
@@ -73,19 +73,16 @@ public class SceneViewerDropTargetListener implements DropTargetListener {
             }
 
         } catch (UnsupportedFlavorException | IOException ex) {
-            ex.printStackTrace();
+            Logger.getLogger(SceneViewerDropTargetListener.class.getName()).log(Level.WARNING, "Non-supported flavor {0}", transferable);
         }
 
-        // If didn't find an item, bail
         if (transferable == null || transferableObj == null) {
-            System.out.println("transferableObj == null");
             return;
         }
 
         final int dropYLoc = dtde.getLocation().y;
         final int dropXLoc = dtde.getLocation().x;
 
-        // ray cast and drop model
         if (flavor instanceof SpatialDataFlavor) {
             rootPanel.addModel(transferableObj.getAssetName(), new Vector2f(dropXLoc, dropYLoc));
         } else if (flavor instanceof MaterialDataFlavor) {

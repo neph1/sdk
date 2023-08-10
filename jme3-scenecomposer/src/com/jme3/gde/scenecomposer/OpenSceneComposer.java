@@ -27,32 +27,26 @@ public final class OpenSceneComposer implements ActionListener {
         if (manager == null) {
             return;
         }
-        Runnable call = new Runnable() {
-
-            public void run() {
-                ProgressHandle progressHandle = ProgressHandle.createHandle("Opening in SceneComposer");
-                progressHandle.start();
-                try {
-                    manager.clearCache();
-                    final Spatial asset = context.loadAsset();
-                    if (asset != null) {
-                        java.awt.EventQueue.invokeLater(new Runnable() {
-
-                            public void run() {
-                                SceneComposerTopComponent composer = SceneComposerTopComponent.findInstance();
-                                composer.openScene(asset, context, manager);
-                            }
-                        });
-                    } else {
-                        Confirmation msg = new NotifyDescriptor.Confirmation(
-                                "Error opening " + context.getPrimaryFile().getNameExt(),
-                                NotifyDescriptor.OK_CANCEL_OPTION,
-                                NotifyDescriptor.ERROR_MESSAGE);
-                        DialogDisplayer.getDefault().notify(msg);
-                    }
-                } finally {
-                    progressHandle.finish();
+        Runnable call = () -> {
+            ProgressHandle progressHandle = ProgressHandle.createHandle("Opening in SceneComposer");
+            progressHandle.start();
+            try {
+                manager.clearCache();
+                final Spatial asset = context.loadAsset();
+                if (asset != null) {
+                    java.awt.EventQueue.invokeLater(() -> {
+                        SceneComposerTopComponent composer = SceneComposerTopComponent.findInstance();
+                        composer.openScene(asset, context, manager);
+                    });
+                } else {
+                    Confirmation msg = new NotifyDescriptor.Confirmation(
+                            "Error opening " + context.getPrimaryFile().getNameExt(),
+                            NotifyDescriptor.OK_CANCEL_OPTION,
+                            NotifyDescriptor.ERROR_MESSAGE);
+                    DialogDisplayer.getDefault().notify(msg);
                 }
+            } finally {
+                progressHandle.finish();
             }
         };
         new Thread(call).start();
