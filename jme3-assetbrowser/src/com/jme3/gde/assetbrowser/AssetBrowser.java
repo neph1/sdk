@@ -62,6 +62,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.JOptionPane;
+import org.netbeans.api.project.Project;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.filesystems.FileAttributeEvent;
@@ -242,12 +243,17 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
      * @param assetManager
      */
     private void createAssetBrowserFolder(ProjectAssetManager assetManager) {
-        FileObject fileObject = assetManager.getProject().getProjectDirectory();
-        File file = new File(fileObject.getPath(), ".assetBrowser/");
+        final FileObject fileObject = assetManager.getProject().getProjectDirectory();
+        
+        final String path = assetManager.isGradleProject() ? 
+            fileObject.getParent().getPath() : fileObject.getPath();
+     
+        final File file = new File(path, ".assetBrowser/");
         if (!file.exists()) {
             file.mkdirs();
         }
     }
+    
 
     /**
      * This method is called from within the constructor to initialize the form.

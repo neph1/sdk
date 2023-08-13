@@ -703,6 +703,10 @@ public class ProjectAssetManager extends DesktopAssetManager {
             }
         });
     }
+    
+    public boolean isGradleProject() {
+        return GradleBaseProject.get(project) != null;
+    }
 
     public Mutex mutex() {
         return mutex;
