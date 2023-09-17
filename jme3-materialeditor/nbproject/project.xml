@@ -227,6 +227,7 @@
             </module-dependencies>
             <public-packages>
                 <package>com.jme3.gde.materials</package>
+                <package>com.jme3.gde.materials.multiview</package>
             </public-packages>
         </data>
     </configuration>
