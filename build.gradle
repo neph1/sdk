@@ -34,17 +34,15 @@ configurations.examplelibs {
 
 dependencies {
 
-    corelibs dep("com.github.xbuf:jme3_xbuf:0.9.1", false, false)
     corelibs dep("com.badlogicgames.gdx:gdx-ai:1.8.2", true, true)
     corelibs dep("javax.help:javahelp:2.0.05", false, false)
 
     corelibs dep("org.jmonkeyengine:jme3-core:$jmeVersion-$jmeVersionTag", true, true)
     corelibs dep("org.jmonkeyengine:jme3-desktop:$jmeVersion-$jmeVersionTag", true, true)
-	corelibs dep("org.jmonkeyengine:jme3-awt-dialogs:$jmeVersion-$jmeVersionTag", true, true)
+    corelibs dep("org.jmonkeyengine:jme3-awt-dialogs:$jmeVersion-$jmeVersionTag", true, true)
     corelibs dep("org.jmonkeyengine:jme3-lwjgl:$jmeVersion-$jmeVersionTag", true, true)
     corelibs dep("org.jmonkeyengine:jme3-effects:$jmeVersion-$jmeVersionTag", true, true)
-    corelibs dep("org.jmonkeyengine:jme3-blender:3.3.2-stable", false, false) // Pin Pointed until jme3-blender has a dedicated release or support is phased out.
-    optlibs dep("com.github.stephengold:Minie:7.7.0", false, false) // replacement for bullet-native
+    corelibs dep("com.github.stephengold:Minie:7.7.0", false, false) // replacement for bullet-native
     corelibs dep(fileTree("lib"), false, false)
     corelibs dep("org.jmonkeyengine:jme3-jogg:$jmeVersion-$jmeVersionTag", true, true)
 
@@ -123,11 +121,18 @@ task copyBaseLibs(dependsOn:configurations.corelibs) {
         project.configurations.corelibs.collect {file ->
             // copy built jme3 jar files to jme3-core-baselibs
             if (file.name.startsWith("jme3") && !isSourceOrJavadoc(file.name)){
+                println(file.name)
                 copy {
                     from file
                     into "jme3-core-baselibs/release/modules/ext/"
                 }
-            }else if( !isSourceOrJavadoc(file.name)){
+            } else if( file.name.contains("Minie") && !isSourceOrJavadoc(file.name)) {
+                // Special handling of Minie, since it doesn't follow the name convention
+                copy {
+                    from file
+                    into "jme3-core-baselibs/release/modules/ext/"
+                }
+            } else if( !isSourceOrJavadoc(file.name)){
                 copy {
                     from file
                     into "jme3-core-libraries/release/modules/ext/"
@@ -174,6 +179,11 @@ task createBaseXml(dependsOn: configurations.corelibs) {
                     jmeJarFiles.add(file)
                 }
 
+            } else if( file.name.contains("Minie") && !isSourceOrJavadoc(file.name)) {
+                // Special handling of Minie, since it doesn't follow the name convention
+                if(!jmeJarFiles.contains(file)) {
+                    jmeJarFiles.add(file)
+                }
             } else if(!isSourceOrJavadoc(file.name)) {
                 //collect external jars
                 externalJarFiles.add(file)

@@ -31,8 +31,8 @@ public class SuspensionSettings {
     }
 
     public SuspensionSettings(VehicleWheel wheel) {
-        this.direction.set(wheel.getDirection());
-        this.axle.set(wheel.getAxle());
+        this.direction.set(wheel.getDirection(new Vector3f()));
+        this.axle.set(wheel.getAxle(new Vector3f()));
         this.frontWheel = wheel.isFrontWheel();
         this.radius = wheel.getRadius();
         this.restLength = wheel.getRestLength();

@@ -327,7 +327,7 @@ public class SceneToolController extends AbstractAppState {
             control = geom.getControl(GhostControl.class);
         }
         if (control == null) {
-            control = geom.getControl(CharacterControl.class);
+            control = geom.getControl(CharacterControl.class).getCharacter();
         }
         if (control == null) {
             return;

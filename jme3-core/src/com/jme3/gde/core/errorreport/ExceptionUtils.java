@@ -31,7 +31,6 @@
  */
 package com.jme3.gde.core.errorreport;
 
-import com.google.common.base.Throwables;
 import com.jme3.system.JmeVersion;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
@@ -68,11 +67,12 @@ public class ExceptionUtils {
             sB.append("If you need troubleshooting help, visit our forums, but "
             + "don't report this as a github issue");
         }
+        
         sB.append(newLine);
         sB.append("Comment: ");
         sB.append(comment);
         sB.append(newLine);
-        sB.append(t != null ? Throwables.getStackTraceAsString(t) : fakeCallstack());
+        sB.append(t != null ? convertStackTraceToString(t) : "No stacktrace");
         sB.append(newLine);
         //sB.append("Versions: ");
         //sB.append(newLine);
@@ -99,8 +99,34 @@ public class ExceptionUtils {
         caughtException(t, "", true);
     }
     
-    private static String fakeCallstack() {
-        return Throwables.getStackTraceAsString(new IllegalStateException("Fake-Callstack!"));
+    /**
+     * ChatGPT generated method to convert to string
+     * @param throwable
+     * @return 
+     */
+    private static String convertStackTraceToString(Throwable throwable) {
+        StringBuilder result = new StringBuilder();
+
+        // Append the exception message (if any)
+        if (throwable.getMessage() != null) {
+            result.append(throwable.getClass().getName()).append(": ").append(throwable.getMessage());
+            result.append(System.lineSeparator());
+        } else {
+            result.append(throwable.getClass().getName()).append(System.lineSeparator());
+        }
+
+        // Append each stack trace element
+        for (StackTraceElement element : throwable.getStackTrace()) {
+            result.append("\tat ").append(element.toString()).append(System.lineSeparator());
+        }
+
+        // Append the cause (if any)
+        Throwable cause = throwable.getCause();
+        if (cause != null) {
+            result.append("Caused by: ").append(convertStackTraceToString(cause));
+        }
+
+        return result.toString();
     }
 }
 
