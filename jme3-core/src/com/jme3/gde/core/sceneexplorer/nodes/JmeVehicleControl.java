@@ -33,12 +33,16 @@ package com.jme3.gde.core.sceneexplorer.nodes;
 
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.VehicleControl;
+import com.jme3.bullet.objects.PhysicsRigidBody;
 import com.jme3.bullet.objects.VehicleWheel;
 import com.jme3.gde.core.icons.IconList;
 import com.jme3.gde.core.scene.SceneApplication;
+import com.jme3.gde.core.sceneexplorer.nodes.editor.GravityPropertyEditor;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import java.awt.Image;
+import java.beans.PropertyEditor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -46,6 +50,7 @@ import java.util.concurrent.ExecutionException;
 import org.openide.loaders.DataObject;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
+import org.openide.nodes.PropertySupport;
 import org.openide.nodes.Sheet;
 import org.openide.util.Exceptions;
 
@@ -103,7 +108,7 @@ public class JmeVehicleControl extends JmeControl {
         set.put(makeProperty(obj, float.class, "getFriction", "setFriction", "Friction"));
         set.put(makeProperty(obj, float.class, "getMass", "setMass", "Mass"));
         set.put(makeProperty(obj, boolean.class, "isKinematic", "setKinematic", "Kinematic"));
-        set.put(makeProperty(obj, Vector3f.class, "getGravity", "setGravity", "Gravity"));
+        set.put(createGravityProperty(obj));
         set.put(makeProperty(obj, float.class, "getLinearDamping", "setLinearDamping", "Linear Damping"));
         set.put(makeProperty(obj, float.class, "getAngularDamping", "setAngularDamping", "Angular Damping"));
         set.put(makeProperty(obj, float.class, "getRestitution", "setRestitution", "Restitution"));
@@ -195,5 +200,26 @@ public class JmeVehicleControl extends JmeControl {
             }
             return null;
         }
+    }
+    
+    private Property createGravityProperty(PhysicsRigidBody physicsRigidBody) {
+        return new PropertySupport("gravity", Vector3f.class, "Gravity", "Set the gravity vector", true, true) {
+            private final GravityPropertyEditor editor = new GravityPropertyEditor(physicsRigidBody);
+
+            @Override
+            public PropertyEditor getPropertyEditor() {
+                return editor;
+            }
+
+            @Override
+            public Object getValue() throws IllegalAccessException, InvocationTargetException {
+                return editor.getValue();
+            }
+
+            @Override
+            public void setValue(Object t) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+                editor.setValue(t);
+            }
+        };
     }
 }
