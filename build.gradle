@@ -120,7 +120,6 @@ task copyBaseLibs(dependsOn:configurations.corelibs) {
         project.configurations.corelibs.collect {file ->
             // copy built jme3 jar files to jme3-core-baselibs
             if (file.name.startsWith("jme3") && !isSourceOrJavadoc(file.name)){
-                println(file.name)
                 copy {
                     from file
                     into "jme3-core-baselibs/release/modules/ext/"
