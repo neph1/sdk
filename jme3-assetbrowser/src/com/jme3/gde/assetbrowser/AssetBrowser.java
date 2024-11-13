@@ -98,7 +98,7 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
     private int oldSliderValue = 2;
 
     private boolean componentListenerAdded = false;
-    private ComponentListener resizeListener = new ComponentListener() {
+    private final ComponentListener resizeListener = new ComponentListener() {
             @Override
             public void componentResized(ComponentEvent e) {
                 setSize(getParent().getSize());
@@ -181,7 +181,7 @@ public class AssetBrowser extends javax.swing.JPanel implements PreviewInteracti
             index = addAssets(materials, MATERIALS, constraints, columns, rows, index);
             index = addAssets(models, MODELS, constraints, columns, rows, index);
             index = addAssets(sounds, SOUNDS, constraints, columns, rows, index);
-            index = addAssets(matdefs, MAT_DEFS, constraints, columns, rows, index);
+            addAssets(matdefs, MAT_DEFS, constraints, columns, rows, index);
             lastGridColumns = columns;
             lastGridRows = rows;
             lastFilter = filter;
