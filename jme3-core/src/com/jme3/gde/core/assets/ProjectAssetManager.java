@@ -166,30 +166,30 @@ public class ProjectAssetManager extends DesktopAssetManager {
         }
         SourceGroup[] groups = sources.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
         List<URL> urls = new LinkedList<>();
-        for (SourceGroup sourceGroup : groups) {
-            ClassPath path = ClassPath.getClassPath(sourceGroup.getRootFolder(), ClassPath.EXECUTE);
-            if (path == null) {
-                continue;
-            }
+            for (SourceGroup sourceGroup : groups) {
+                ClassPath path = ClassPath.getClassPath(sourceGroup.getRootFolder(), ClassPath.EXECUTE);
+                if (path == null) {
+                    continue;
+                }
 
-            classPaths.add(path);
-            path.addPropertyChangeListener(classPathListener);
-            FileObject[] roots = path.getRoots();
-            for (FileObject fileObject : roots) {
-                if (!fileObject.equals(getAssetFolder())) {
-                    fileObject.addRecursiveListener(listener);
-                    logger.log(Level.FINE, "Add classpath:{0}", fileObject);
-                    classPathItems.add(new ClassPathItem(fileObject, listener));
-                    urls.add(fileObject.toURL());
-                }
-                if (fileObject.toURL().toExternalForm().startsWith("jar")) {
-                    logger.log(Level.FINE, "Add locator:{0}", fileObject.toURL());
-                    jarItems.add(fileObject);
-                    registerLocator(fileObject.toURL().toExternalForm(),
-                            "com.jme3.asset.plugins.UrlLocator");
+                classPaths.add(path);
+                path.addPropertyChangeListener(classPathListener);
+                FileObject[] roots = path.getRoots();
+                for (FileObject fileObject : roots) {
+                    if (!fileObject.equals(getAssetFolder())) {
+                        fileObject.addRecursiveListener(listener);
+                        logger.log(Level.FINE, "Add classpath:{0}", fileObject);
+                        classPathItems.add(new ClassPathItem(fileObject, listener));
+                        urls.add(fileObject.toURL());
+                    }
+                    if (fileObject.toURL().toExternalForm().startsWith("jar")) {
+                        logger.log(Level.FINE, "Add locator:{0}", fileObject.toURL());
+                        jarItems.add(fileObject);
+                        registerLocator(fileObject.toURL().toExternalForm(),
+                                "com.jme3.asset.plugins.UrlLocator");
+                    }
                 }
             }
-        }
 
         loadGradleClassLoader(urls);
 
@@ -223,7 +223,7 @@ public class ProjectAssetManager extends DesktopAssetManager {
         for (File file : runtimeFiles) {
             // logger.info(file.getName() + " : "  + file.getAbsolutePath());
             FileObject fo = FileUtil.toFileObject(file);
-            if (fo != null && !fo.isFolder()) {
+            if (fo != null) {
                 logger.info(fo.toURL().toExternalForm());
                 if (!fo.equals(getAssetFolder())) {
                     fo.addRecursiveListener(listener);
