@@ -32,8 +32,9 @@
 package com.jme3.gde.core.appstates;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import javax.lang.model.element.TypeElement;
@@ -54,6 +55,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.api.project.SourceGroup;
 import org.netbeans.api.project.Sources;
+import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -83,37 +85,56 @@ public final class NewAppStateVisualPanel1 extends JPanel {
     }
 
     private List<String> getSources() {
-        Sources sources = ProjectUtils.getSources(proj);
-        final List<String> list = new LinkedList<>();
-        if (sources != null) {
-            SourceGroup[] groups = sources.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
-            if (groups != null) {
-                for (SourceGroup sourceGroup : groups) {
-                    ClasspathInfo cpInfo = ClasspathInfo.create(
-                            ClassPath.getClassPath(sourceGroup.getRootFolder(), ClassPath.BOOT),
-                            ClassPath.getClassPath(sourceGroup.getRootFolder(), ClassPath.COMPILE),
-                            ClassPath.getClassPath(sourceGroup.getRootFolder(), ClassPath.SOURCE)
-                    );
+        Project root = ProjectUtils.rootOf(proj);
+        Set<Project> containedProjects = ProjectUtils.getContainedProjects(root, true);
+        List<Project> projects = new ArrayList<>();
+        projects.add(root);
+        if (containedProjects != null) {
+            projects.addAll(containedProjects);
+        }
+        if (projects.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-                    Set<SearchScope> set = EnumSet.of(ClassIndex.SearchScope.SOURCE);
-                    Set<ElementHandle<TypeElement>> types = cpInfo.getClassIndex().getDeclaredTypes("", NameKind.PREFIX, set);
-                    for (ElementHandle<TypeElement> elementHandle : types) {
-                        JavaSource js = JavaSource.create(cpInfo);
-                        try {
-                            js.runUserActionTask((CompilationController control) -> {
-                                control.toPhase(JavaSource.Phase.RESOLVED);
-                                TypeElement elem = elementHandle.resolve(control);
-                                if (elem != null && doesInheritFromAppState(elem, control.getTypes())) {
-                                    list.add(elem.getQualifiedName().toString());
-                                }
-                            }, false);
-                        } catch (IOException ioe) {
-                            Exceptions.printStackTrace(ioe);
-                        }
+        List<String> list = new ArrayList<>();
+        for (Project project : projects) {
+            Sources sources = ProjectUtils.getSources(project);
+            if (sources == null) {
+                continue;
+            }
+
+            SourceGroup[] groups = sources.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
+            if (groups == null) {
+                continue;
+            }
+
+            for (SourceGroup sourceGroup : groups) {
+                FileObject rootFolder = sourceGroup.getRootFolder();
+                ClasspathInfo cpInfo = ClasspathInfo.create(
+                        ClassPath.getClassPath(rootFolder, ClassPath.BOOT),
+                        ClassPath.getClassPath(rootFolder, ClassPath.COMPILE),
+                        ClassPath.getClassPath(rootFolder, ClassPath.SOURCE)
+                );
+
+                Set<SearchScope> set = EnumSet.of(ClassIndex.SearchScope.SOURCE);
+                Set<ElementHandle<TypeElement>> types = cpInfo.getClassIndex().getDeclaredTypes("", NameKind.PREFIX, set);
+                for (ElementHandle<TypeElement> elementHandle : types) {
+                    JavaSource js = JavaSource.create(cpInfo);
+                    try {
+                        js.runUserActionTask((CompilationController control) -> {
+                            control.toPhase(JavaSource.Phase.RESOLVED);
+                            TypeElement elem = elementHandle.resolve(control);
+                            if (elem != null && doesInheritFromAppState(elem, control.getTypes())) {
+                                list.add(elem.getQualifiedName().toString());
+                            }
+                        }, false);
+                    } catch (IOException ioe) {
+                        Exceptions.printStackTrace(ioe);
                     }
                 }
             }
         }
+
         return list;
     }
 
