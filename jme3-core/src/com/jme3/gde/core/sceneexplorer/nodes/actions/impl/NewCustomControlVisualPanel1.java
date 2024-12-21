@@ -31,9 +31,10 @@
  */
 package com.jme3.gde.core.sceneexplorer.nodes.actions.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import javax.lang.model.element.TypeElement;
@@ -53,6 +54,7 @@ import org.netbeans.api.java.source.JavaSource;
 import org.netbeans.api.java.source.JavaSource.Phase;
 import org.netbeans.api.java.source.Task;
 import org.netbeans.api.project.Project;
+import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.api.project.SourceGroup;
 import org.netbeans.api.project.Sources;
 import org.openide.util.Exceptions;
@@ -84,73 +86,94 @@ public final class NewCustomControlVisualPanel1 extends JPanel {
     }
 
     private List<String> getSources() {
-        Sources sources = proj.getLookup().lookup(Sources.class);
-        final List<String> list = new LinkedList<String>();
-        if (sources != null) {
+        Project root = ProjectUtils.rootOf(proj);
+        Set<Project> containedProjects = ProjectUtils.getContainedProjects(root, true);
+        List<Project> projects = new ArrayList<>();
+        projects.add(root);
+        if (containedProjects != null) {
+            projects.addAll(containedProjects);
+        }
+        if (projects.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<String> list = new ArrayList<>();
+        for (Project project : projects) {
+            Sources sources = project.getLookup().lookup(Sources.class);
+            if (sources == null) {
+                continue;
+            }
+
             SourceGroup[] groups = sources.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
-            if (groups != null) {
-                for (SourceGroup sourceGroup : groups) {
-                    final ClasspathInfo cpInfo = ClasspathInfo.create(ClassPath.getClassPath(sourceGroup.getRootFolder(), ClassPath.BOOT),
-                            ClassPath.getClassPath(sourceGroup.getRootFolder(), ClassPath.COMPILE),
-                            ClassPath.getClassPath(sourceGroup.getRootFolder(), ClassPath.SOURCE));
+            if (groups == null) {
+                continue;
+            }
 
-                    Set<SearchScope> set = EnumSet.of(ClassIndex.SearchScope.SOURCE);
-                    Set<ElementHandle<TypeElement>> types = cpInfo.getClassIndex().getDeclaredTypes("", NameKind.PREFIX, set);
-                    for (Iterator<ElementHandle<TypeElement>> it = types.iterator(); it.hasNext();) {
-                        final ElementHandle<TypeElement> elementHandle = it.next();
-                        JavaSource js = JavaSource.create(cpInfo);
-                        try {
-                            js.runUserActionTask(new Task<CompilationController>() {
-                                @Override
-                                public void run(CompilationController control)
-                                        throws Exception {
-                                    control.toPhase(Phase.RESOLVED);
-                                    //TODO: check with proper casting check.. gotta get TypeMirror of Control interface..
-//                                    TypeUtilities util = control.getTypeUtilities();//.isCastable(Types., null)
-//                                    util.isCastable(null, null);
-                                    TypeElement elem = elementHandle.resolve(control);
-                                    if (elem == null)
-                                        return;
-                                    
-                                    String elementName = elem.getQualifiedName().toString();
-                                    
-                                    if (list.contains(elementName)) /* No duplicates */
-                                        return;
-                                    
-                                    do {
-                                        //Check if it implements control interface
-                                        for (TypeMirror typeMirror : elem.getInterfaces()) {
-                                            String interfaceName = typeMirror.toString();
-                                            if ("com.jme3.scene.control.Control".equals(interfaceName)) {
-                                                if (!list.contains(elementName))
-                                                    list.add(elementName);
-                                                break;
-                                            }
-                                        }
-                                        //Check if it is an AbstractControl
-                                        String className = elem.toString();
-                                        if ("com.jme3.scene.control.AbstractControl".equals(className)) {
-                                            if (!list.contains(elementName))
+            for (SourceGroup sourceGroup : groups) {
+                final ClasspathInfo cpInfo = ClasspathInfo.create(ClassPath.getClassPath(sourceGroup.getRootFolder(), ClassPath.BOOT),
+                        ClassPath.getClassPath(sourceGroup.getRootFolder(), ClassPath.COMPILE),
+                        ClassPath.getClassPath(sourceGroup.getRootFolder(), ClassPath.SOURCE));
+
+                Set<SearchScope> set = EnumSet.of(ClassIndex.SearchScope.SOURCE);
+                Set<ElementHandle<TypeElement>> types = cpInfo.getClassIndex().getDeclaredTypes("", NameKind.PREFIX, set);
+                for (Iterator<ElementHandle<TypeElement>> it = types.iterator(); it.hasNext();) {
+                    final ElementHandle<TypeElement> elementHandle = it.next();
+                    JavaSource js = JavaSource.create(cpInfo);
+                    try {
+                        js.runUserActionTask(new Task<CompilationController>() {
+                            @Override
+                            public void run(CompilationController control)
+                                    throws Exception {
+                                control.toPhase(Phase.RESOLVED);
+                                //TODO: check with proper casting check.. gotta get TypeMirror of Control interface..
+                                //                                    TypeUtilities util = control.getTypeUtilities();//.isCastable(Types., null)
+                                //                                    util.isCastable(null, null);
+                                TypeElement elem = elementHandle.resolve(control);
+                                if (elem == null) {
+                                    return;
+                                }
+
+                                String elementName = elem.getQualifiedName().toString();
+
+                                if (list.contains(elementName)) /* No duplicates */ {
+                                    return;
+                                }
+
+                                do {
+                                    //Check if it implements control interface
+                                    for (TypeMirror typeMirror : elem.getInterfaces()) {
+                                        String interfaceName = typeMirror.toString();
+                                        if ("com.jme3.scene.control.Control".equals(interfaceName)) {
+                                            if (!list.contains(elementName)) {
                                                 list.add(elementName);
-                                        }
-
-                                        TypeMirror superClass = elem.getSuperclass();
-                                        if (superClass == null || superClass.getKind() == TypeKind.NONE) {
+                                            }
                                             break;
                                         }
+                                    }
+                                    //Check if it is an AbstractControl
+                                    String className = elem.toString();
+                                    if ("com.jme3.scene.control.AbstractControl".equals(className)) {
+                                        if (!list.contains(elementName)) {
+                                            list.add(elementName);
+                                        }
+                                    }
 
-                                        elem = (TypeElement)((DeclaredType)superClass).asElement(); // Iterate deeper
-                                    } while (elem != null);
-                                }
-                            }, false);
-                        } catch (Exception ioe) {
-                            Exceptions.printStackTrace(ioe);
-                        }
+                                    TypeMirror superClass = elem.getSuperclass();
+                                    if (superClass == null || superClass.getKind() == TypeKind.NONE) {
+                                        break;
+                                    }
+
+                                    elem = (TypeElement) ((DeclaredType) superClass).asElement(); // Iterate deeper
+                                } while (elem != null);
+                            }
+                        }, false);
+                    } catch (Exception ioe) {
+                        Exceptions.printStackTrace(ioe);
                     }
-
                 }
             }
         }
+
         return list;
     }
 
