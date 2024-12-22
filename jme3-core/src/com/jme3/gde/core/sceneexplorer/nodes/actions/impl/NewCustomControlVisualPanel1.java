@@ -153,10 +153,8 @@ public final class NewCustomControlVisualPanel1 extends JPanel {
                                     }
                                     //Check if it is an AbstractControl
                                     String className = elem.toString();
-                                    if ("com.jme3.scene.control.AbstractControl".equals(className)) {
-                                        if (!list.contains(elementName)) {
-                                            list.add(elementName);
-                                        }
+                                    if ("com.jme3.scene.control.AbstractControl".equals(className) && !list.contains(elementName)) {
+                                        list.add(elementName);
                                     }
 
                                     TypeMirror superClass = elem.getSuperclass();
