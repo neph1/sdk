@@ -34,6 +34,7 @@ package com.jme3.gde.core.sceneexplorer.nodes.actions.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -57,6 +58,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.api.project.SourceGroup;
 import org.netbeans.api.project.Sources;
+import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -97,7 +99,7 @@ public final class NewCustomControlVisualPanel1 extends JPanel {
             return Collections.emptyList();
         }
 
-        List<String> list = new ArrayList<>();
+        Set<String> list = new HashSet<>();
         for (Project project : projects) {
             Sources sources = project.getLookup().lookup(Sources.class);
             if (sources == null) {
@@ -110,9 +112,10 @@ public final class NewCustomControlVisualPanel1 extends JPanel {
             }
 
             for (SourceGroup sourceGroup : groups) {
-                final ClasspathInfo cpInfo = ClasspathInfo.create(ClassPath.getClassPath(sourceGroup.getRootFolder(), ClassPath.BOOT),
-                        ClassPath.getClassPath(sourceGroup.getRootFolder(), ClassPath.COMPILE),
-                        ClassPath.getClassPath(sourceGroup.getRootFolder(), ClassPath.SOURCE));
+                FileObject rootFolder = sourceGroup.getRootFolder();
+                final ClasspathInfo cpInfo = ClasspathInfo.create(ClassPath.getClassPath(rootFolder, ClassPath.BOOT),
+                        ClassPath.getClassPath(rootFolder, ClassPath.COMPILE),
+                        ClassPath.getClassPath(rootFolder, ClassPath.SOURCE));
 
                 Set<SearchScope> set = EnumSet.of(ClassIndex.SearchScope.SOURCE);
                 Set<ElementHandle<TypeElement>> types = cpInfo.getClassIndex().getDeclaredTypes("", NameKind.PREFIX, set);
@@ -143,10 +146,8 @@ public final class NewCustomControlVisualPanel1 extends JPanel {
                                     //Check if it implements control interface
                                     for (TypeMirror typeMirror : elem.getInterfaces()) {
                                         String interfaceName = typeMirror.toString();
-                                        if ("com.jme3.scene.control.Control".equals(interfaceName)) {
-                                            if (!list.contains(elementName)) {
-                                                list.add(elementName);
-                                            }
+                                        if ("com.jme3.scene.control.Control".equals(interfaceName) && !list.contains(elementName)) {
+                                            list.add(elementName);
                                             break;
                                         }
                                     }
@@ -174,7 +175,7 @@ public final class NewCustomControlVisualPanel1 extends JPanel {
             }
         }
 
-        return list;
+        return new ArrayList<>(list);
     }
 
     public void load(Project proj) {
