@@ -79,7 +79,7 @@ public final class SceneExplorerTopComponent extends TopComponent implements Exp
     private static final Logger logger = Logger.getLogger(SceneExplorerTopComponent.class.getName());
     private static SceneExplorerTopComponent instance;
     private static final String PREFERRED_ID = "SceneExplorerTopComponent";
-    
+
     private AbstractSceneExplorerNode[] selectedSpatials;
     private AbstractSceneExplorerNode[] lastSelected;
     private final Map<String, MaterialChangeProvider> materialChangeProviders = new HashMap<>();
@@ -156,8 +156,6 @@ public final class SceneExplorerTopComponent extends TopComponent implements Exp
         for (AbstractSceneExplorerNode node: selectedSpatials) {
             node.refresh(false);
         }
-        
-           
     }//GEN-LAST:event_jButton1ActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane explorerScrollPane;
