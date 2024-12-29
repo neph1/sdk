@@ -31,6 +31,7 @@
  */
 package com.jme3.gde.core.sceneexplorer;
 
+import com.jme3.gde.core.assets.RefreshJmeSpatial;
 import com.jme3.gde.core.icons.IconList;
 import com.jme3.gde.core.scene.PreviewRequest;
 import com.jme3.gde.core.scene.SceneApplication;
@@ -48,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.actions.CopyAction;
 import org.openide.actions.CutAction;
