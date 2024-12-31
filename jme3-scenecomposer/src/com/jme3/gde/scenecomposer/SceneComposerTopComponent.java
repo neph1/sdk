@@ -1321,6 +1321,9 @@ private void jToggleSelectGeomActionPerformed(java.awt.event.ActionEvent evt) {/
     }
 
     private boolean select(AbstractSceneExplorerNode[] nodes) {
+        if( nodes.length == 0) {
+            return false;
+        }
         AbstractSceneExplorerNode first = nodes[0];
         if (editorController != null) {
             editorController.setSelectedExplorerNode(first);
