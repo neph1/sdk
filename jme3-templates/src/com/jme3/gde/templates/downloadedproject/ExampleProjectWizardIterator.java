@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2025 jMonkeyEngine
+ * Copyright (c) 2024 jMonkeyEngine
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,77 +29,60 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jme3.gde.templates.gradledesktop;
+package com.jme3.gde.templates.downloadedproject;
 
-import com.jme3.gde.templates.FileUtils;
 import com.jme3.gde.templates.gradledesktop.options.CachedOptionsContainer;
 import java.awt.Component;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.MessageFormat;
-import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import javax.swing.JComponent;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.project.ProjectManager;
 import org.netbeans.spi.project.ui.support.ProjectChooser;
-import org.netbeans.spi.project.ui.templates.support.Templates;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.NbBundle;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class GradleDesktopGameWizardIterator implements WizardDescriptor./*Progress*/InstantiatingIterator {
+public class ExampleProjectWizardIterator implements WizardDescriptor.InstantiatingIterator {
 
     private int index;
     private WizardDescriptor.Panel[] panels;
     private WizardDescriptor wiz;
-
-    private static final String TEMPLATE_SETTINGS = "com/jme3/gde/templates/files/freemarker/settings.gradle.ftl";
-    private static final String TEMPLATE_BUILDFILE = "com/jme3/gde/templates/files/freemarker/build.gradle.ftl";
     
-    public GradleDesktopGameWizardIterator() {
+    private Config config = new Config();
+    
+    public ExampleProjectWizardIterator() {
 
         // Initiate the options getting...
         CachedOptionsContainer.getInstance();
     }
 
-    public static GradleDesktopGameWizardIterator createIterator() {
-        return new GradleDesktopGameWizardIterator();
+    public static ExampleProjectWizardIterator createIterator() {
+        return new ExampleProjectWizardIterator();
     }
 
     private WizardDescriptor.Panel[] createPanels() {
         return new WizardDescriptor.Panel[]{
-                    new GradleDesktopGameWizardPanel(),
-                    new GradleDesktopGameJMEVersionPanel(),
-                    new GradleDesktopGameGuiPanel(),
-                    new GradleDesktopGameAdditionalLibrariesPanel()
+                    new ProjectDownloadPanel(config),
+                    new ExampleProjectWizardPanel(config)
         };
     }
 
     private String[] createSteps() {
         return new String[]{
-                    NbBundle.getMessage(GradleDesktopGameWizardIterator.class, "LBL_CreateProjectStep"),
-                    NbBundle.getMessage(GradleDesktopGameWizardIterator.class, "LBL_ChooseEngineStep"),
-                    NbBundle.getMessage(GradleDesktopGameWizardIterator.class, "LBL_ChooseGuiStep"),
-                    NbBundle.getMessage(GradleDesktopGameWizardIterator.class, "LBL_ChooseAdditionalLibrariesStep")
+                    NbBundle.getMessage(ExampleProjectWizardIterator.class, "LBL_DownloadProjectStep"),
+                    NbBundle.getMessage(ExampleProjectWizardIterator.class, "LBL_CreateProjectStep"),
                 };
     }
 
@@ -109,27 +92,12 @@ public class GradleDesktopGameWizardIterator implements WizardDescriptor./*Progr
         File dirF = FileUtil.normalizeFile((File) wiz.getProperty("projdir"));
         dirF.mkdirs();
 
-        FileObject template = Templates.getTemplate(wiz);
+        FileObject template = FileUtil.toFileObject(new File(
+                ProjectDownloadPanel.DOWNLOAD_FOLDER, 
+                config.getZipName()));
+        
         FileObject dir = FileUtil.toFileObject(dirF);
-        FileUtils.unZipFile(template.getInputStream(), dir);
-        
-        // Create settings.gradle from template
-        File gradleSettingsFile = new File(dirF, "settings.gradle");
-        createFileFromTemplate(gradleSettingsFile, TEMPLATE_SETTINGS,
-                Collections.singletonMap("name", wiz.getProperty("name")));
-        
-        // Create build.gradle from template
-        File gradleBuildFile = new File(dirF, "build.gradle");
-        Map<String, Object> buildFileBindings = new HashMap<>();
-        buildFileBindings.put("name", wiz.getProperty("name"));
-        buildFileBindings.put("jmeVersion", wiz.getProperty("jmeVersion"));
-        buildFileBindings.put("lwjglLibrary", wiz.getProperty("lwjglLibrary"));
-        buildFileBindings.put("guiLibrary", wiz.getProperty("guiLibrary"));
-        buildFileBindings.put("physicsLibrary", wiz.getProperty("physicsLibrary"));
-        buildFileBindings.put("networkingLibrary", wiz.getProperty("networkingLibrary"));
-        buildFileBindings.put("additionalLibraries", wiz.getProperty("additionalLibraries"));
-        
-        createFileFromTemplate(gradleBuildFile, TEMPLATE_BUILDFILE, buildFileBindings);
+        unZipFile(template.getInputStream(), dir);
         
         // Always open top dir as a project:
         resultSet.add(dir);
@@ -165,7 +133,7 @@ public class GradleDesktopGameWizardIterator implements WizardDescriptor./*Progr
                 // chooser to appear in the list of steps.
                 steps[i] = c.getName();
             }
-            if (c instanceof JComponent jc) {
+            if (c instanceof JComponent jc) {                 // Step #.
                 // TODO if using org.openide.dialogs >= 7.8, can use WizardDescriptor.PROP_*:
                 jc.putClientProperty("WizardPanel_contentSelectedIndex", i);
                 // Step name (actually the whole list for reference).
@@ -228,24 +196,27 @@ public class GradleDesktopGameWizardIterator implements WizardDescriptor./*Progr
     public final void removeChangeListener(ChangeListener l) {
     }
 
-    private void createFileFromTemplate(File target, String templateResourcePath, Map<String, Object> tokens) throws IOException {
-        
-        // Create FreeMarker script engine
-        ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-        ScriptEngine engine = scriptEngineManager.getEngineByName("freemarker");
-        Map<String, Object> bindings = engine.getContext().getBindings(ScriptContext.ENGINE_SCOPE);
-        bindings.putAll(tokens);
-        
-        // Process template           
-        try {
-            FileObject targetFO = FileUtil.toFileObject(target);
-            try (Writer os = new BufferedWriter(new OutputStreamWriter(targetFO.getOutputStream(), StandardCharsets.UTF_8)); Reader is = new BufferedReader(new InputStreamReader(GradleDesktopGameWizardIterator.class.getResourceAsStream("/" + templateResourcePath)));) {
-                engine.getContext().setWriter(os);
-                engine.eval(is);
+    private void unZipFile(InputStream source, FileObject projectRoot) throws IOException {
+        final String master = config.getGithubRef();
+        try (source) {
+            ZipInputStream str = new ZipInputStream(source);
+            ZipEntry entry;
+            
+            while ((entry = str.getNextEntry()) != null) {
+                if (entry.getName().endsWith(master)) {
+                    continue;
+                }
+                final String entryName = entry.getName().replace(master, "");
+                if (entry.isDirectory()) {
+                    FileUtil.createFolder(projectRoot, entryName);
+                } else {
+                    FileObject fo = FileUtil.createData(projectRoot, entryName);
+                    try (OutputStream out = fo.getOutputStream()) {
+                        FileUtil.copy(str, out);
+                    }
+                }
             }
-        } catch (IOException | ScriptException ex) {
-                throw new IOException(ex.getMessage(), ex);
         }
     }
-    
+
 }
