@@ -39,6 +39,7 @@ import com.jme3.gde.core.properties.SceneExplorerProperty;
 import com.jme3.gde.core.properties.SceneExplorerPropertyEditor;
 import com.jme3.material.Material;
 import com.jme3.asset.MaterialKey;
+import com.jme3.gde.core.sceneexplorer.nodes.AbstractSceneExplorerNode;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -108,7 +109,9 @@ public class MaterialPropertyEditor implements PropertyEditor, SceneExplorerProp
     public void setAsText(final String text) throws IllegalArgumentException {
         if ("create j3m file".equals(text)) {
             try {
-                Node geom = SceneExplorerTopComponent.findInstance().getLastSelected();
+                AbstractSceneExplorerNode[] selected = SceneExplorerTopComponent.findInstance().getLastSelected();
+                assert (selected != null && selected.length > 0);
+                Node geom = selected[0];        
                 assert (geom != null);
                 ProjectAssetManager pm = geom.getLookup().lookup(ProjectAssetManager.class);
                 assert (pm != null);
