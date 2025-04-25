@@ -190,21 +190,26 @@ public class GlslLexer implements Lexer<GlslTokenID> {
                             }
                         }
                     }
-                    if (current == null) {
-                    }
-                    switch (current) {
-                        case BASIC_TYPE:
-                            return token(GlslTokenID.PRIMITIVE);
-                        case KEYWORD:
-                            return token(GlslTokenID.KEYWORD);
-                        case BUILTIN_VARIABLE:
-                            return token(GlslTokenID.BUILTIN_VARIABLE);
-                        case BUILTIN_FUNCTION:
-                            return token(GlslTokenID.BUILTIN_FUNCTION);
+                    if (current != null) {
+                        switch (current) {
+                            case BASIC_TYPE -> {
+                                return token(GlslTokenID.PRIMITIVE);
+                            }
+                            case KEYWORD -> {
+                                return token(GlslTokenID.KEYWORD);
+                            }
+                            case BUILTIN_VARIABLE -> {
+                                return token(GlslTokenID.BUILTIN_VARIABLE);
+                            }
+                            case BUILTIN_FUNCTION -> {
+                                return token(GlslTokenID.BUILTIN_FUNCTION);
+                            }
+                        }
                     }
                 }
             }
         }
+        
         //Those have to be recognized separately for closing bracket recognition
         return token(GlslTokenID.TEXT);
     }
@@ -224,21 +229,10 @@ public class GlslLexer implements Lexer<GlslTokenID> {
     }
 
     private boolean isDigit(int c) {
-        switch (c) {
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                return true;
-            default:
-                return false;
-        }
+        return switch (c) {
+            case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> true;
+            default -> false;
+        };
     }
 
     private void readTillNewLine() {

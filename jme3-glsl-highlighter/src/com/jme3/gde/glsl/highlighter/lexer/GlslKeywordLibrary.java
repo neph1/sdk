@@ -31,6 +31,7 @@
  */
 package com.jme3.gde.glsl.highlighter.lexer;
 
+import com.jme3.gde.glsl.highlighter.util.Trie;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,477 +41,488 @@ import java.util.List;
  *
  * @author grizeldi
  */
-class GlslKeywordLibrary {
-
+public final class GlslKeywordLibrary {
+    
     public enum KeywordType {
         KEYWORD, BUILTIN_FUNCTION, BUILTIN_VARIABLE, BASIC_TYPE, UNFINISHED;
     }
-    private static final List<String> keywords = new ArrayList<>(),
-            builtinFunctions = new ArrayList<>(),
-            builtinVariables = new ArrayList<>(),
-            basicTypes = new ArrayList<>();
+
+    public record Keyword(String keyword, KeywordType keywordType) {
+
+    }
+    
+    private static final Trie keywords = new Trie();
+    private static final Trie builtinFunctions = new Trie();
+    private static final Trie builtinVariables = new Trie();
+    private static final Trie basicTypes = new Trie();
 
     static {
         //keywords
-        keywords.add("attribute");
-        keywords.add("const");
-        keywords.add("uniform");
-        keywords.add("varying");
-        keywords.add("buffer");
-        keywords.add("shared");
-        keywords.add("coherent");
-        keywords.add("volatile");
-        keywords.add("restrict");
-        keywords.add("readonly");
-        keywords.add("writeonly");
-        keywords.add("atomic_uint");
-        keywords.add("layout");
-        keywords.add("centroid");
-        keywords.add("flat");
-        keywords.add("smooth");
-        keywords.add("noperspective");
-        keywords.add("patch");
-        keywords.add("sample");
-        keywords.add("break");
-        keywords.add("continue");
-        keywords.add("do");
-        keywords.add("for");
-        keywords.add("while");
-        keywords.add("switch");
-        keywords.add("case");
-        keywords.add("default");
-        keywords.add("if");
-        keywords.add("else");
-        keywords.add("subroutine");
-        keywords.add("in");
-        keywords.add("out");
-        keywords.add("inout");
-        keywords.add("void");
-        keywords.add("true");
-        keywords.add("false");
-        keywords.add("invariant");
-        keywords.add("precise");
-        keywords.add("discard");
-        keywords.add("return");
+        keywords.insert("attribute");
+        keywords.insert("const");
+        keywords.insert("uniform");
+        keywords.insert("varying");
+        keywords.insert("buffer");
+        keywords.insert("shared");
+        keywords.insert("coherent");
+        keywords.insert("volatile");
+        keywords.insert("restrict");
+        keywords.insert("readonly");
+        keywords.insert("writeonly");
+        keywords.insert("atomic_uint");
+        keywords.insert("layout");
+        keywords.insert("centroid");
+        keywords.insert("flat");
+        keywords.insert("smooth");
+        keywords.insert("noperspective");
+        keywords.insert("patch");
+        keywords.insert("sample");
+        keywords.insert("break");
+        keywords.insert("continue");
+        keywords.insert("do");
+        keywords.insert("for");
+        keywords.insert("while");
+        keywords.insert("switch");
+        keywords.insert("case");
+        keywords.insert("default");
+        keywords.insert("if");
+        keywords.insert("else");
+        keywords.insert("subroutine");
+        keywords.insert("in");
+        keywords.insert("out");
+        keywords.insert("inout");
+        keywords.insert("void");
+        keywords.insert("true");
+        keywords.insert("false");
+        keywords.insert("invariant");
+        keywords.insert("precise");
+        keywords.insert("discard");
+        keywords.insert("return");
         //primitives and other types
-        basicTypes.add("float");
-        basicTypes.add("double");
-        basicTypes.add("int");
-        basicTypes.add("bool");
-        basicTypes.add("mat2");
-        basicTypes.add("mat3");
-        basicTypes.add("mat4");
-        basicTypes.add("dmat2");
-        basicTypes.add("dmat3");
-        basicTypes.add("dmat4");
-        basicTypes.add("mat2x2");
-        basicTypes.add("mat2x3");
-        basicTypes.add("mat2x4");
-        basicTypes.add("dmat2x2");
-        basicTypes.add("dmat2x3");
-        basicTypes.add("dmat2x4");
-        basicTypes.add("mat3x2");
-        basicTypes.add("mat3x3");
-        basicTypes.add("mat3x4");
-        basicTypes.add("dmat3x2");
-        basicTypes.add("dmat3x3");
-        basicTypes.add("dmat3x4");
-        basicTypes.add("mat4x2");
-        basicTypes.add("mat4x3");
-        basicTypes.add("mat4x4");
-        basicTypes.add("dmat4x2");
-        basicTypes.add("dmat4x3");
-        basicTypes.add("dmat4x4");
-        basicTypes.add("vec2");
-        basicTypes.add("vec3");
-        basicTypes.add("vec4");
-        basicTypes.add("ivec2");
-        basicTypes.add("ivec3");
-        basicTypes.add("ivec4");
-        basicTypes.add("bvec2");
-        basicTypes.add("bvec3");
-        basicTypes.add("bvec4");
-        basicTypes.add("dvec2");
-        basicTypes.add("dvec3");
-        basicTypes.add("dvec4");
-        basicTypes.add("uint");
-        basicTypes.add("uvec2");
-        basicTypes.add("uvec3");
-        basicTypes.add("uvec4");
-        basicTypes.add("lowp");
-        basicTypes.add("mediump");
-        basicTypes.add("highp");
-        basicTypes.add("precision");
-        basicTypes.add("sampler1D");
-        basicTypes.add("sampler2D");
-        basicTypes.add("sampler3D");
-        basicTypes.add("samplerCube");
-        basicTypes.add("sampler1DShadow");
-        basicTypes.add("sampler2DShadow");
-        basicTypes.add("samplerCubeShadow");
-        basicTypes.add("sampler1DArray");
-        basicTypes.add("sampler2DArray");
-        basicTypes.add("sampler1DArrayShadow");
-        basicTypes.add("sampler2DArrayShadow");
-        basicTypes.add("isampler1D");
-        basicTypes.add("isampler2D");
-        basicTypes.add("isampler3D");
-        basicTypes.add("isamplerCube");
-        basicTypes.add("isampler1DArray");
-        basicTypes.add("isampler2DArray");
-        basicTypes.add("usampler1D");
-        basicTypes.add("usampler2D");
-        basicTypes.add("usampler3D");
-        basicTypes.add("usamplerCube");
-        basicTypes.add("usampler1DArray");
-        basicTypes.add("usampler2DArray");
-        basicTypes.add("sampler2DRect");
-        basicTypes.add("sampler2DRectShadow");
-        basicTypes.add("isampler2DRect");
-        basicTypes.add("usampler2DRect");
-        basicTypes.add("samplerBuffer");
-        basicTypes.add("isamplerBuffer");
-        basicTypes.add("usamplerBuffer");
-        basicTypes.add("sampler2DMS");
-        basicTypes.add("isampler2DMS");
-        basicTypes.add("usampler2DMS");
-        basicTypes.add("sampler2DMSArray");
-        basicTypes.add("isampler2DMSArray");
-        basicTypes.add("usampler2DMSArray");
-        basicTypes.add("samplerCubeArray");
-        basicTypes.add("samplerCubeArrayShadow");
-        basicTypes.add("isamplerCubeArray");
-        basicTypes.add("usamplerCubeArray");
-        basicTypes.add("image1D");
-        basicTypes.add("iimage1D");
-        basicTypes.add("uimage1D");
-        basicTypes.add("image2D");
-        basicTypes.add("iimage2D");
-        basicTypes.add("uimage2D");
-        basicTypes.add("image3D");
-        basicTypes.add("iimage3D");
-        basicTypes.add("uimage3D");
-        basicTypes.add("image2DRect");
-        basicTypes.add("iimage2DRect");
-        basicTypes.add("uimage2DRect");
-        basicTypes.add("imageCube");
-        basicTypes.add("iimageCube");
-        basicTypes.add("uimageCube");
-        basicTypes.add("imageBuffer");
-        basicTypes.add("iimageBuffer");
-        basicTypes.add("uimageBuffer");
-        basicTypes.add("image1DArray");
-        basicTypes.add("iimage1DArray");
-        basicTypes.add("uimage1DArray");
-        basicTypes.add("image2DArray");
-        basicTypes.add("iimage2DArray");
-        basicTypes.add("uimage2DArray");
-        basicTypes.add("imageCubeArray");
-        basicTypes.add("iimageCubeArray");
-        basicTypes.add("uimageCubeArray");
-        basicTypes.add("image2DMS");
-        basicTypes.add("iimage2DMS");
-        basicTypes.add("uimage2DMS");
-        basicTypes.add("image2DMSArray");
-        basicTypes.add("iimage2DMSArray");
-        basicTypes.add("uimage2DMSArray");
-        basicTypes.add("struct");
+        basicTypes.insert("float");
+        basicTypes.insert("double");
+        basicTypes.insert("int");
+        basicTypes.insert("bool");
+        basicTypes.insert("mat2");
+        basicTypes.insert("mat3");
+        basicTypes.insert("mat4");
+        basicTypes.insert("dmat2");
+        basicTypes.insert("dmat3");
+        basicTypes.insert("dmat4");
+        basicTypes.insert("mat2x2");
+        basicTypes.insert("mat2x3");
+        basicTypes.insert("mat2x4");
+        basicTypes.insert("dmat2x2");
+        basicTypes.insert("dmat2x3");
+        basicTypes.insert("dmat2x4");
+        basicTypes.insert("mat3x2");
+        basicTypes.insert("mat3x3");
+        basicTypes.insert("mat3x4");
+        basicTypes.insert("dmat3x2");
+        basicTypes.insert("dmat3x3");
+        basicTypes.insert("dmat3x4");
+        basicTypes.insert("mat4x2");
+        basicTypes.insert("mat4x3");
+        basicTypes.insert("mat4x4");
+        basicTypes.insert("dmat4x2");
+        basicTypes.insert("dmat4x3");
+        basicTypes.insert("dmat4x4");
+        basicTypes.insert("vec2");
+        basicTypes.insert("vec3");
+        basicTypes.insert("vec4");
+        basicTypes.insert("ivec2");
+        basicTypes.insert("ivec3");
+        basicTypes.insert("ivec4");
+        basicTypes.insert("bvec2");
+        basicTypes.insert("bvec3");
+        basicTypes.insert("bvec4");
+        basicTypes.insert("dvec2");
+        basicTypes.insert("dvec3");
+        basicTypes.insert("dvec4");
+        basicTypes.insert("uint");
+        basicTypes.insert("uvec2");
+        basicTypes.insert("uvec3");
+        basicTypes.insert("uvec4");
+        basicTypes.insert("lowp");
+        basicTypes.insert("mediump");
+        basicTypes.insert("highp");
+        basicTypes.insert("precision");
+        basicTypes.insert("sampler1D");
+        basicTypes.insert("sampler2D");
+        basicTypes.insert("sampler3D");
+        basicTypes.insert("samplerCube");
+        basicTypes.insert("sampler1DShadow");
+        basicTypes.insert("sampler2DShadow");
+        basicTypes.insert("samplerCubeShadow");
+        basicTypes.insert("sampler1DArray");
+        basicTypes.insert("sampler2DArray");
+        basicTypes.insert("sampler1DArrayShadow");
+        basicTypes.insert("sampler2DArrayShadow");
+        basicTypes.insert("isampler1D");
+        basicTypes.insert("isampler2D");
+        basicTypes.insert("isampler3D");
+        basicTypes.insert("isamplerCube");
+        basicTypes.insert("isampler1DArray");
+        basicTypes.insert("isampler2DArray");
+        basicTypes.insert("usampler1D");
+        basicTypes.insert("usampler2D");
+        basicTypes.insert("usampler3D");
+        basicTypes.insert("usamplerCube");
+        basicTypes.insert("usampler1DArray");
+        basicTypes.insert("usampler2DArray");
+        basicTypes.insert("sampler2DRect");
+        basicTypes.insert("sampler2DRectShadow");
+        basicTypes.insert("isampler2DRect");
+        basicTypes.insert("usampler2DRect");
+        basicTypes.insert("samplerBuffer");
+        basicTypes.insert("isamplerBuffer");
+        basicTypes.insert("usamplerBuffer");
+        basicTypes.insert("sampler2DMS");
+        basicTypes.insert("isampler2DMS");
+        basicTypes.insert("usampler2DMS");
+        basicTypes.insert("sampler2DMSArray");
+        basicTypes.insert("isampler2DMSArray");
+        basicTypes.insert("usampler2DMSArray");
+        basicTypes.insert("samplerCubeArray");
+        basicTypes.insert("samplerCubeArrayShadow");
+        basicTypes.insert("isamplerCubeArray");
+        basicTypes.insert("usamplerCubeArray");
+        basicTypes.insert("image1D");
+        basicTypes.insert("iimage1D");
+        basicTypes.insert("uimage1D");
+        basicTypes.insert("image2D");
+        basicTypes.insert("iimage2D");
+        basicTypes.insert("uimage2D");
+        basicTypes.insert("image3D");
+        basicTypes.insert("iimage3D");
+        basicTypes.insert("uimage3D");
+        basicTypes.insert("image2DRect");
+        basicTypes.insert("iimage2DRect");
+        basicTypes.insert("uimage2DRect");
+        basicTypes.insert("imageCube");
+        basicTypes.insert("iimageCube");
+        basicTypes.insert("uimageCube");
+        basicTypes.insert("imageBuffer");
+        basicTypes.insert("iimageBuffer");
+        basicTypes.insert("uimageBuffer");
+        basicTypes.insert("image1DArray");
+        basicTypes.insert("iimage1DArray");
+        basicTypes.insert("uimage1DArray");
+        basicTypes.insert("image2DArray");
+        basicTypes.insert("iimage2DArray");
+        basicTypes.insert("uimage2DArray");
+        basicTypes.insert("imageCubeArray");
+        basicTypes.insert("iimageCubeArray");
+        basicTypes.insert("uimageCubeArray");
+        basicTypes.insert("image2DMS");
+        basicTypes.insert("iimage2DMS");
+        basicTypes.insert("uimage2DMS");
+        basicTypes.insert("image2DMSArray");
+        basicTypes.insert("iimage2DMSArray");
+        basicTypes.insert("uimage2DMSArray");
+        basicTypes.insert("struct");
         //builtin variables
         //compute shaders
-        builtinVariables.add("gl_NumWorkGroups");
-        builtinVariables.add("gl_WorkGroupSize");
-        builtinVariables.add("gl_WorkGroupID");
-        builtinVariables.add("gl_LocalInvocationID");
-        builtinVariables.add("gl_GlobalInvocationID");
-        builtinVariables.add("gl_LocalInvocationIndex");
+        builtinVariables.insert("gl_NumWorkGroups");
+        builtinVariables.insert("gl_WorkGroupSize");
+        builtinVariables.insert("gl_WorkGroupID");
+        builtinVariables.insert("gl_LocalInvocationID");
+        builtinVariables.insert("gl_GlobalInvocationID");
+        builtinVariables.insert("gl_LocalInvocationIndex");
         //vertex shaders
-        builtinVariables.add("gl_VertexID");
-        builtinVariables.add("gl_InstanceID");
-        builtinVariables.add("gl_Position");
+        builtinVariables.insert("gl_VertexID");
+        builtinVariables.insert("gl_InstanceID");
+        builtinVariables.insert("gl_Position");
         //geometry shaders
-        builtinVariables.add("gl_PrimitiveIDIn");
-        builtinVariables.add("gl_Layer");
-        builtinVariables.add("gl_ViewportIndex");
+        builtinVariables.insert("gl_PrimitiveIDIn");
+        builtinVariables.insert("gl_Layer");
+        builtinVariables.insert("gl_ViewportIndex");
         //tesselation shaders
-        builtinVariables.add("gl_MaxPatchVertices");
-        builtinVariables.add("gl_PatchVerticesIn");
-        builtinVariables.add("gl_TessLevelOuter");
-        builtinVariables.add("gl_TessLevelInner");
-        builtinVariables.add("gl_TessCoord");
+        builtinVariables.insert("gl_MaxPatchVertices");
+        builtinVariables.insert("gl_PatchVerticesIn");
+        builtinVariables.insert("gl_TessLevelOuter");
+        builtinVariables.insert("gl_TessLevelInner");
+        builtinVariables.insert("gl_TessCoord");
         //fragment shaders
-        builtinVariables.add("gl_FragCoord");
-        builtinVariables.add("gl_FrontFacing");
-        builtinVariables.add("gl_PointCoord");
-        builtinVariables.add("gl_SampleID");
-        builtinVariables.add("gl_SamplePosition");
-        builtinVariables.add("gl_SampleMaskIn");
-        builtinVariables.add("gl_Layer");
-        builtinVariables.add("gl_ViewportIndex");
-        builtinVariables.add("gl_FragColor");
+        builtinVariables.insert("gl_FragCoord");
+        builtinVariables.insert("gl_FrontFacing");
+        builtinVariables.insert("gl_PointCoord");
+        builtinVariables.insert("gl_SampleID");
+        builtinVariables.insert("gl_SamplePosition");
+        builtinVariables.insert("gl_SampleMaskIn");
+        builtinVariables.insert("gl_Layer");
+        builtinVariables.insert("gl_ViewportIndex");
+        builtinVariables.insert("gl_FragColor");
         //general
-        builtinVariables.add("gl_Position");
-        builtinVariables.add("gl_PointSize");
-        builtinVariables.add("gl_ClipDistance");
-        builtinVariables.add("gl_InvocationID");
-        builtinVariables.add("gl_PrimitiveID");
+        builtinVariables.insert("gl_Position");
+        builtinVariables.insert("gl_PointSize");
+        builtinVariables.insert("gl_ClipDistance");
+        builtinVariables.insert("gl_InvocationID");
+        builtinVariables.insert("gl_PrimitiveID");
         //jme variables - this is why we build custom plugins :) (apart from existing being under GPL)
-        builtinVariables.add("inPosition");
-        builtinVariables.add("inNormal");
-        builtinVariables.add("inColor");
-        builtinVariables.add("inTextCoord");
-        builtinVariables.add("g_WorldMatrix");
-        builtinVariables.add("g_ViewMatrix");
-        builtinVariables.add("g_ProjectionMatrix");
-        builtinVariables.add("g_WorldViewMatrix");
-        builtinVariables.add("g_WorldViewProjectionMatrix");
-        builtinVariables.add("g_WorldNormalMatrix");
-        builtinVariables.add("g_NormalMatrix");
-        builtinVariables.add("g_ViewProjectionMatrix");
-        builtinVariables.add("g_WorldMatrixInverseTranspose");
-        builtinVariables.add("g_WorldMatrixInverse");
-        builtinVariables.add("g_ViewMatrixInverse");
-        builtinVariables.add("g_ProjectionMatrixInverse");
-        builtinVariables.add("g_ViewProjectionMatrixInverse");
-        builtinVariables.add("g_WorldViewMatrixInverse");
-        builtinVariables.add("g_NormalMatrixInverse");
-        builtinVariables.add("g_WorldViewProjectionMatrixInverse");
-        builtinVariables.add("g_ViewPort");
-        builtinVariables.add("g_FrustumNearFar");
-        builtinVariables.add("g_Resolution");
-        builtinVariables.add("g_ResolutionInverse");
-        builtinVariables.add("g_Aspect");
-        builtinVariables.add("g_CameraPosition");
-        builtinVariables.add("g_CameraDirection");
-        builtinVariables.add("g_CameraLeft");
-        builtinVariables.add("g_CameraUp");
-        builtinVariables.add("g_Time");
-        builtinVariables.add("g_Tpf");
-        builtinVariables.add("g_FrameRate");
-        builtinVariables.add("g_LightDirection");
-        builtinVariables.add("g_LightPosition");
-        builtinVariables.add("g_LightColor");
-        builtinVariables.add("g_AmbientLightColor");
+        builtinVariables.insert("inPosition");
+        builtinVariables.insert("inNormal");
+        builtinVariables.insert("inColor");
+        builtinVariables.insert("inTextCoord");
+        builtinVariables.insert("g_WorldMatrix");
+        builtinVariables.insert("g_ViewMatrix");
+        builtinVariables.insert("g_ProjectionMatrix");
+        builtinVariables.insert("g_WorldViewMatrix");
+        builtinVariables.insert("g_WorldViewProjectionMatrix");
+        builtinVariables.insert("g_WorldNormalMatrix");
+        builtinVariables.insert("g_NormalMatrix");
+        builtinVariables.insert("g_ViewProjectionMatrix");
+        builtinVariables.insert("g_WorldMatrixInverseTranspose");
+        builtinVariables.insert("g_WorldMatrixInverse");
+        builtinVariables.insert("g_ViewMatrixInverse");
+        builtinVariables.insert("g_ProjectionMatrixInverse");
+        builtinVariables.insert("g_ViewProjectionMatrixInverse");
+        builtinVariables.insert("g_WorldViewMatrixInverse");
+        builtinVariables.insert("g_NormalMatrixInverse");
+        builtinVariables.insert("g_WorldViewProjectionMatrixInverse");
+        builtinVariables.insert("g_ViewPort");
+        builtinVariables.insert("g_FrustumNearFar");
+        builtinVariables.insert("g_Resolution");
+        builtinVariables.insert("g_ResolutionInverse");
+        builtinVariables.insert("g_Aspect");
+        builtinVariables.insert("g_CameraPosition");
+        builtinVariables.insert("g_CameraDirection");
+        builtinVariables.insert("g_CameraLeft");
+        builtinVariables.insert("g_CameraUp");
+        builtinVariables.insert("g_Time");
+        builtinVariables.insert("g_Tpf");
+        builtinVariables.insert("g_FrameRate");
+        builtinVariables.insert("g_LightDirection");
+        builtinVariables.insert("g_LightPosition");
+        builtinVariables.insert("g_LightColor");
+        builtinVariables.insert("g_AmbientLightColor");
         //builtin functions
-        builtinFunctions.add("radians");
-        builtinFunctions.add("degrees");
-        builtinFunctions.add("sin");
-        builtinFunctions.add("cos");
-        builtinFunctions.add("tan");
-        builtinFunctions.add("asin");
-        builtinFunctions.add("acos");
-        builtinFunctions.add("atan");
-        builtinFunctions.add("sinh");
-        builtinFunctions.add("cosh");
-        builtinFunctions.add("tanh");
-        builtinFunctions.add("asinh");
-        builtinFunctions.add("acosh");
-        builtinFunctions.add("atanh");
-        builtinFunctions.add("pow");
-        builtinFunctions.add("exp");
-        builtinFunctions.add("log");
-        builtinFunctions.add("exp2");
-        builtinFunctions.add("log2");
-        builtinFunctions.add("sqrt");
-        builtinFunctions.add("inversesqrt");
-        builtinFunctions.add("abs");
-        builtinFunctions.add("sign");
-        builtinFunctions.add("floor");
-        builtinFunctions.add("trunc");
-        builtinFunctions.add("round");
-        builtinFunctions.add("roundEven");
-        builtinFunctions.add("ceil");
-        builtinFunctions.add("fract");
-        builtinFunctions.add("mod");
-        builtinFunctions.add("modf");
-        builtinFunctions.add("min");
-        builtinFunctions.add("max");
-        builtinFunctions.add("clamp");
-        builtinFunctions.add("mix");
-        builtinFunctions.add("step");
-        builtinFunctions.add("smoothstep");
-        builtinFunctions.add("isnan");
-        builtinFunctions.add("isinf");
-        builtinFunctions.add("floatBitsToInt");
-        builtinFunctions.add("floatBitsToUInt");
-        builtinFunctions.add("intBitsToFloat");
-        builtinFunctions.add("uintBitsToFloat");
-        builtinFunctions.add("fma");
-        builtinFunctions.add("frexp");
-        builtinFunctions.add("packUnorm2x16");
-        builtinFunctions.add("packSnorm2x16");
-        builtinFunctions.add("packUnorm4x8");
-        builtinFunctions.add("packSnorm4x8");
-        builtinFunctions.add("unpackUnorm2x16");
-        builtinFunctions.add("unpackSnorm2x16");
-        builtinFunctions.add("unpackUnorm4x8");
-        builtinFunctions.add("unpackSnorm4x8");
-        builtinFunctions.add("packDouble2x32");
-        builtinFunctions.add("unpackDouble2x32");
-        builtinFunctions.add("packHalf2x16");
-        builtinFunctions.add("unpackHalf2x16");
-        builtinFunctions.add("length");
-        builtinFunctions.add("distance");
-        builtinFunctions.add("dot");
-        builtinFunctions.add("cross");
-        builtinFunctions.add("normalize");
-        builtinFunctions.add("ftransform");
-        builtinFunctions.add("faceforward");
-        builtinFunctions.add("reflect");
-        builtinFunctions.add("refract");
-        builtinFunctions.add("matrixCompMult");
-        builtinFunctions.add("outerProduct");
-        builtinFunctions.add("transpose");
-        builtinFunctions.add("determinant");
-        builtinFunctions.add("inverse");
-        builtinFunctions.add("lessThan");
-        builtinFunctions.add("lessThanEqual");
-        builtinFunctions.add("greaterThan");
-        builtinFunctions.add("greaterThanEqual");
-        builtinFunctions.add("equal");
-        builtinFunctions.add("notEqual");
-        builtinFunctions.add("any");
-        builtinFunctions.add("all");
-        builtinFunctions.add("not");
-        builtinFunctions.add("uaddCarry");
-        builtinFunctions.add("usubBorrow");
-        builtinFunctions.add("umulExtended");
-        builtinFunctions.add("imulExtended");
-        builtinFunctions.add("bitfieldExtract");
-        builtinFunctions.add("bitfieldInsert");
-        builtinFunctions.add("bitfieldReverse");
-        builtinFunctions.add("bitCount");
-        builtinFunctions.add("findLSB");
-        builtinFunctions.add("findMSB");
-        builtinFunctions.add("textureSize");
-        builtinFunctions.add("textureQueryLod");
-        builtinFunctions.add("textureQueryLevels");
-        builtinFunctions.add("texture");
-        builtinFunctions.add("textureProj");
-        builtinFunctions.add("textureLod");
-        builtinFunctions.add("textureOffset");
-        builtinFunctions.add("texelFetch");
-        builtinFunctions.add("texelFetchOffset");
-        builtinFunctions.add("textureProjOffset");
-        builtinFunctions.add("textureLodOffset");
-        builtinFunctions.add("textureProjLod");
-        builtinFunctions.add("textureProjLodOffset");
-        builtinFunctions.add("textureGrad");
-        builtinFunctions.add("textureGradOffset");
-        builtinFunctions.add("textureProjGrad");
-        builtinFunctions.add("textureProjGradOffset");
-        builtinFunctions.add("textureGather");
-        builtinFunctions.add("textureGatherOffset");
-        builtinFunctions.add("textureGatherOffsets");
-        builtinFunctions.add("texture1D");
-        builtinFunctions.add("texture1DProj");
-        builtinFunctions.add("texture1DLod");
-        builtinFunctions.add("texture1DProjLod");
-        builtinFunctions.add("texture2D");
-        builtinFunctions.add("texture2DProj");
-        builtinFunctions.add("texture2DLod");
-        builtinFunctions.add("texture2DProjLod");
-        builtinFunctions.add("texture3D");
-        builtinFunctions.add("texture3DProj");
-        builtinFunctions.add("texture3DLod");
-        builtinFunctions.add("texture3DProjLod");
-        builtinFunctions.add("textureCube");
-        builtinFunctions.add("textureCubeLod");
-        builtinFunctions.add("shadow1D");
-        builtinFunctions.add("shadow2D");
-        builtinFunctions.add("shadow1DProj");
-        builtinFunctions.add("shadow2DProj");
-        builtinFunctions.add("shadow1DLod");
-        builtinFunctions.add("shadow2DLod");
-        builtinFunctions.add("shadow1DProjLod");
-        builtinFunctions.add("shadow2DProjLod");
-        builtinFunctions.add("atomicCounterIncrement");
-        builtinFunctions.add("atomicCounterDecrement");
-        builtinFunctions.add("atomicCounter");
-        builtinFunctions.add("atomicAdd");
-        builtinFunctions.add("atomicMin");
-        builtinFunctions.add("atomicMax");
-        builtinFunctions.add("atomicAnd");
-        builtinFunctions.add("atomicOr");
-        builtinFunctions.add("atomicXor");
-        builtinFunctions.add("atomicExchange");
-        builtinFunctions.add("atomicCompSwap");
-        builtinFunctions.add("imageSize");
-        builtinFunctions.add("imageLoad");
-        builtinFunctions.add("imageStore");
-        builtinFunctions.add("imageAtomicAdd");
-        builtinFunctions.add("imageAtomicMin");
-        builtinFunctions.add("imageAtomicMax");
-        builtinFunctions.add("imageAtomicAnd");
-        builtinFunctions.add("imageAtomicOr");
-        builtinFunctions.add("imageAtomicXor");
-        builtinFunctions.add("imageAtomicExchange");
-        builtinFunctions.add("imageAtomicCompSwap");
-        builtinFunctions.add("dFdx");
-        builtinFunctions.add("dFdy");
-        builtinFunctions.add("fwidth");
-        builtinFunctions.add("interpolateAtCentroid");
-        builtinFunctions.add("interpolateAtSample");
-        builtinFunctions.add("interpolateAtOffset");
-        builtinFunctions.add("noise1");
-        builtinFunctions.add("noise2");
-        builtinFunctions.add("noise3");
-        builtinFunctions.add("noise4");
-        builtinFunctions.add("EmitStreamVertex");
-        builtinFunctions.add("EndStreamPrimitive");
-        builtinFunctions.add("EmitVertex");
-        builtinFunctions.add("EndPrimitive");
-        builtinFunctions.add("barrier");
-        builtinFunctions.add("memoryBarrier");
-        builtinFunctions.add("memoryBarrierAtomicCounter");
-        builtinFunctions.add("memoryBarrierBuffer");
-        builtinFunctions.add("memoryBarrierShared");
-        builtinFunctions.add("memoryBarrierImage");
-        builtinFunctions.add("groupMemoryBarrier");
+        builtinFunctions.insert("radians");
+        builtinFunctions.insert("degrees");
+        builtinFunctions.insert("sin");
+        builtinFunctions.insert("cos");
+        builtinFunctions.insert("tan");
+        builtinFunctions.insert("asin");
+        builtinFunctions.insert("acos");
+        builtinFunctions.insert("atan");
+        builtinFunctions.insert("sinh");
+        builtinFunctions.insert("cosh");
+        builtinFunctions.insert("tanh");
+        builtinFunctions.insert("asinh");
+        builtinFunctions.insert("acosh");
+        builtinFunctions.insert("atanh");
+        builtinFunctions.insert("pow");
+        builtinFunctions.insert("exp");
+        builtinFunctions.insert("log");
+        builtinFunctions.insert("exp2");
+        builtinFunctions.insert("log2");
+        builtinFunctions.insert("sqrt");
+        builtinFunctions.insert("inversesqrt");
+        builtinFunctions.insert("abs");
+        builtinFunctions.insert("sign");
+        builtinFunctions.insert("floor");
+        builtinFunctions.insert("trunc");
+        builtinFunctions.insert("round");
+        builtinFunctions.insert("roundEven");
+        builtinFunctions.insert("ceil");
+        builtinFunctions.insert("fract");
+        builtinFunctions.insert("mod");
+        builtinFunctions.insert("modf");
+        builtinFunctions.insert("min");
+        builtinFunctions.insert("max");
+        builtinFunctions.insert("clamp");
+        builtinFunctions.insert("mix");
+        builtinFunctions.insert("step");
+        builtinFunctions.insert("smoothstep");
+        builtinFunctions.insert("isnan");
+        builtinFunctions.insert("isinf");
+        builtinFunctions.insert("floatBitsToInt");
+        builtinFunctions.insert("floatBitsToUInt");
+        builtinFunctions.insert("intBitsToFloat");
+        builtinFunctions.insert("uintBitsToFloat");
+        builtinFunctions.insert("fma");
+        builtinFunctions.insert("frexp");
+        builtinFunctions.insert("packUnorm2x16");
+        builtinFunctions.insert("packSnorm2x16");
+        builtinFunctions.insert("packUnorm4x8");
+        builtinFunctions.insert("packSnorm4x8");
+        builtinFunctions.insert("unpackUnorm2x16");
+        builtinFunctions.insert("unpackSnorm2x16");
+        builtinFunctions.insert("unpackUnorm4x8");
+        builtinFunctions.insert("unpackSnorm4x8");
+        builtinFunctions.insert("packDouble2x32");
+        builtinFunctions.insert("unpackDouble2x32");
+        builtinFunctions.insert("packHalf2x16");
+        builtinFunctions.insert("unpackHalf2x16");
+        builtinFunctions.insert("length");
+        builtinFunctions.insert("distance");
+        builtinFunctions.insert("dot");
+        builtinFunctions.insert("cross");
+        builtinFunctions.insert("normalize");
+        builtinFunctions.insert("ftransform");
+        builtinFunctions.insert("faceforward");
+        builtinFunctions.insert("reflect");
+        builtinFunctions.insert("refract");
+        builtinFunctions.insert("matrixCompMult");
+        builtinFunctions.insert("outerProduct");
+        builtinFunctions.insert("transpose");
+        builtinFunctions.insert("determinant");
+        builtinFunctions.insert("inverse");
+        builtinFunctions.insert("lessThan");
+        builtinFunctions.insert("lessThanEqual");
+        builtinFunctions.insert("greaterThan");
+        builtinFunctions.insert("greaterThanEqual");
+        builtinFunctions.insert("equal");
+        builtinFunctions.insert("notEqual");
+        builtinFunctions.insert("any");
+        builtinFunctions.insert("all");
+        builtinFunctions.insert("not");
+        builtinFunctions.insert("uaddCarry");
+        builtinFunctions.insert("usubBorrow");
+        builtinFunctions.insert("umulExtended");
+        builtinFunctions.insert("imulExtended");
+        builtinFunctions.insert("bitfieldExtract");
+        builtinFunctions.insert("bitfieldInsert");
+        builtinFunctions.insert("bitfieldReverse");
+        builtinFunctions.insert("bitCount");
+        builtinFunctions.insert("findLSB");
+        builtinFunctions.insert("findMSB");
+        builtinFunctions.insert("textureSize");
+        builtinFunctions.insert("textureQueryLod");
+        builtinFunctions.insert("textureQueryLevels");
+        builtinFunctions.insert("texture");
+        builtinFunctions.insert("textureProj");
+        builtinFunctions.insert("textureLod");
+        builtinFunctions.insert("textureOffset");
+        builtinFunctions.insert("texelFetch");
+        builtinFunctions.insert("texelFetchOffset");
+        builtinFunctions.insert("textureProjOffset");
+        builtinFunctions.insert("textureLodOffset");
+        builtinFunctions.insert("textureProjLod");
+        builtinFunctions.insert("textureProjLodOffset");
+        builtinFunctions.insert("textureGrad");
+        builtinFunctions.insert("textureGradOffset");
+        builtinFunctions.insert("textureProjGrad");
+        builtinFunctions.insert("textureProjGradOffset");
+        builtinFunctions.insert("textureGather");
+        builtinFunctions.insert("textureGatherOffset");
+        builtinFunctions.insert("textureGatherOffsets");
+        builtinFunctions.insert("texture1D");
+        builtinFunctions.insert("texture1DProj");
+        builtinFunctions.insert("texture1DLod");
+        builtinFunctions.insert("texture1DProjLod");
+        builtinFunctions.insert("texture2D");
+        builtinFunctions.insert("texture2DProj");
+        builtinFunctions.insert("texture2DLod");
+        builtinFunctions.insert("texture2DProjLod");
+        builtinFunctions.insert("texture3D");
+        builtinFunctions.insert("texture3DProj");
+        builtinFunctions.insert("texture3DLod");
+        builtinFunctions.insert("texture3DProjLod");
+        builtinFunctions.insert("textureCube");
+        builtinFunctions.insert("textureCubeLod");
+        builtinFunctions.insert("shadow1D");
+        builtinFunctions.insert("shadow2D");
+        builtinFunctions.insert("shadow1DProj");
+        builtinFunctions.insert("shadow2DProj");
+        builtinFunctions.insert("shadow1DLod");
+        builtinFunctions.insert("shadow2DLod");
+        builtinFunctions.insert("shadow1DProjLod");
+        builtinFunctions.insert("shadow2DProjLod");
+        builtinFunctions.insert("atomicCounterIncrement");
+        builtinFunctions.insert("atomicCounterDecrement");
+        builtinFunctions.insert("atomicCounter");
+        builtinFunctions.insert("atomicAdd");
+        builtinFunctions.insert("atomicMin");
+        builtinFunctions.insert("atomicMax");
+        builtinFunctions.insert("atomicAnd");
+        builtinFunctions.insert("atomicOr");
+        builtinFunctions.insert("atomicXor");
+        builtinFunctions.insert("atomicExchange");
+        builtinFunctions.insert("atomicCompSwap");
+        builtinFunctions.insert("imageSize");
+        builtinFunctions.insert("imageLoad");
+        builtinFunctions.insert("imageStore");
+        builtinFunctions.insert("imageAtomicAdd");
+        builtinFunctions.insert("imageAtomicMin");
+        builtinFunctions.insert("imageAtomicMax");
+        builtinFunctions.insert("imageAtomicAnd");
+        builtinFunctions.insert("imageAtomicOr");
+        builtinFunctions.insert("imageAtomicXor");
+        builtinFunctions.insert("imageAtomicExchange");
+        builtinFunctions.insert("imageAtomicCompSwap");
+        builtinFunctions.insert("dFdx");
+        builtinFunctions.insert("dFdy");
+        builtinFunctions.insert("fwidth");
+        builtinFunctions.insert("interpolateAtCentroid");
+        builtinFunctions.insert("interpolateAtSample");
+        builtinFunctions.insert("interpolateAtOffset");
+        builtinFunctions.insert("noise1");
+        builtinFunctions.insert("noise2");
+        builtinFunctions.insert("noise3");
+        builtinFunctions.insert("noise4");
+        builtinFunctions.insert("EmitStreamVertex");
+        builtinFunctions.insert("EndStreamPrimitive");
+        builtinFunctions.insert("EmitVertex");
+        builtinFunctions.insert("EndPrimitive");
+        builtinFunctions.insert("barrier");
+        builtinFunctions.insert("memoryBarrier");
+        builtinFunctions.insert("memoryBarrierAtomicCounter");
+        builtinFunctions.insert("memoryBarrierBuffer");
+        builtinFunctions.insert("memoryBarrierShared");
+        builtinFunctions.insert("memoryBarrierImage");
+        builtinFunctions.insert("groupMemoryBarrier");
     }
 
+    /**
+     * Finds if given string is either a partial match, full match or nothing at
+     * all
+     *
+     * @param s string to search for
+     * @return returns the status of the string
+     */
     public static KeywordType lookup(String s) {
         KeywordType returnType = null;
-        for (String primitive : basicTypes) {
-            if (primitive.startsWith(s)) {
-                if (primitive.equals(s)) {
-                    returnType = KeywordType.BASIC_TYPE;
-                    break;
-                } else {
-                    returnType = KeywordType.UNFINISHED;
-                }
-            }
+        returnType = lookup(s, returnType, KeywordType.BASIC_TYPE, basicTypes);
+        if (returnType == KeywordType.UNFINISHED || returnType == null) {
+            returnType = lookup(s, returnType, KeywordType.BUILTIN_VARIABLE, builtinVariables);
         }
-        for (String var : builtinVariables) {
-            if (var.startsWith(s)) {
-                if (var.equals(s)) {
-                    returnType = KeywordType.BUILTIN_VARIABLE;
-                    break;
-                } else {
-                    returnType = KeywordType.UNFINISHED;
-                }
-            }
+        if (returnType == KeywordType.UNFINISHED || returnType == null) {
+            returnType = lookup(s, returnType, KeywordType.BUILTIN_FUNCTION, builtinFunctions);
         }
-        for (String func : builtinFunctions) {
-            if (func.startsWith(s) && (returnType == KeywordType.UNFINISHED || returnType == null)) {
-                if (func.equals(s)) {
-                    returnType = KeywordType.BUILTIN_FUNCTION;
-                    break;
-                } else {
-                    returnType = KeywordType.UNFINISHED;
-                }
-            }
-        }
-        for (String keyword : keywords) {
-            if (keyword.startsWith(s) && (returnType == KeywordType.UNFINISHED || returnType == null)) {
-                if (keyword.equals(s)) {
-                    returnType = KeywordType.KEYWORD;
-                    break;
-                } else {
-                    returnType = KeywordType.UNFINISHED;
-                }
-            }
+        if (returnType == KeywordType.UNFINISHED || returnType == null) {
+            returnType = lookup(s, returnType, KeywordType.KEYWORD, keywords);
         }
 
         return returnType;
+    }
+
+    /**
+     * Gets all the possible matches for given string (auto-complete)
+     *
+     * @param s string to search for
+     * @return all the matches for given string
+     */
+    public static List<Keyword> lookupAll(String s) {
+        List<Keyword> matches = new ArrayList<>();
+
+        matches.addAll(basicTypes.searchAll(s).stream().map((keyword) -> new Keyword(keyword, KeywordType.BASIC_TYPE)).toList());
+        matches.addAll(builtinVariables.searchAll(s).stream().map((keyword) -> new Keyword(keyword, KeywordType.BUILTIN_VARIABLE)).toList());
+        matches.addAll(builtinFunctions.searchAll(s).stream().map((keyword) -> new Keyword(keyword, KeywordType.BUILTIN_FUNCTION)).toList());
+        matches.addAll(keywords.searchAll(s).stream().map((keyword) -> new Keyword(keyword, KeywordType.KEYWORD)).toList());
+
+        return matches;
+    }
+
+    private static KeywordType lookup(String s, KeywordType currentType, KeywordType matchType, Trie searchTrie) {
+        Trie.MatchType match = searchTrie.search(s);
+        if (match == Trie.MatchType.FULL_MATCH) {
+            return matchType;
+        }
+        if (match == Trie.MatchType.PARTIAL_MATCH) {
+            return KeywordType.UNFINISHED;
+        }
+
+        return currentType;
     }
 }

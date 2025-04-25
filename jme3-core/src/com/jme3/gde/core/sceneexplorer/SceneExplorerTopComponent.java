@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2009-2010 jMonkeyEngine
+ *  Copyright (c) 2009-2024 jMonkeyEngine
  *  All rights reserved.
  * 
  *  Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
  */
 package com.jme3.gde.core.sceneexplorer;
 
+import com.jme3.gde.core.assets.RefreshJmeSpatial;
 import com.jme3.gde.core.icons.IconList;
 import com.jme3.gde.core.scene.PreviewRequest;
 import com.jme3.gde.core.scene.SceneApplication;
@@ -48,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.actions.CopyAction;
 import org.openide.actions.CutAction;
@@ -77,11 +79,13 @@ public final class SceneExplorerTopComponent extends TopComponent implements Exp
     private static final Logger logger = Logger.getLogger(SceneExplorerTopComponent.class.getName());
     private static SceneExplorerTopComponent instance;
     private static final String PREFERRED_ID = "SceneExplorerTopComponent";
-//    private final Result<AbstractSceneExplorerNode> nodeSelectionResult;
-    private AbstractSceneExplorerNode selectedSpatial;
-    private AbstractSceneExplorerNode lastSelected;
-    private Map<String, MaterialChangeProvider> materialChangeProviders = new HashMap<String, MaterialChangeProvider>();
-    private Map<String, List<MaterialChangeListener>> materialChangeListeners = new HashMap<String, List<MaterialChangeListener>>();
+
+    private AbstractSceneExplorerNode[] selectedSpatials;
+    private AbstractSceneExplorerNode[] lastSelected;
+    private final Map<String, MaterialChangeProvider> materialChangeProviders = new HashMap<>();
+    private final Map<String, List<MaterialChangeListener>> materialChangeListeners = new HashMap<>();
+    
+    private final transient ExplorerManager explorerManager = new ExplorerManager();
 
     public SceneExplorerTopComponent() {
         initComponents();
@@ -90,8 +94,6 @@ public final class SceneExplorerTopComponent extends TopComponent implements Exp
         setToolTipText(NbBundle.getMessage(SceneExplorerTopComponent.class, "HINT_SceneExplorerTopComponent"));
         setIcon(IconList.jmeLogo.getImage());
         associateLookup(ExplorerUtils.createLookup(explorerManager, getActionMap()));
-//        nodeSelectionResult = Utilities.actionsGlobalContext().lookupResult(AbstractSceneExplorerNode.class);
-//        nodeSelectionResult.addLookupListener(this);
     }
 
     private void initActions() {
@@ -148,10 +150,12 @@ public final class SceneExplorerTopComponent extends TopComponent implements Exp
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        if (selectedSpatial == null) {
+        if (selectedSpatials == null) {
             return;
         }
-        selectedSpatial.refresh(false);
+        for (AbstractSceneExplorerNode node: selectedSpatials) {
+            node.refresh(false);
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane explorerScrollPane;
@@ -164,6 +168,7 @@ public final class SceneExplorerTopComponent extends TopComponent implements Exp
      * only, i.e. deserialization routines; otherwise you could get a
      * non-deserialized instance. To obtain the singleton instance, use
      * {@link #findInstance}.
+     * @return 
      */
     public static synchronized SceneExplorerTopComponent getDefault() {
         if (instance == null) {
@@ -175,16 +180,17 @@ public final class SceneExplorerTopComponent extends TopComponent implements Exp
     /**
      * Obtain the SceneExplorerTopComponent instance. Never call
      * {@link #getDefault} directly!
+     * @return 
      */
     public static synchronized SceneExplorerTopComponent findInstance() {
-        TopComponent win = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
-        if (win == null) {
+        TopComponent window = WindowManager.getDefault().findTopComponent(PREFERRED_ID);
+        if (window == null) {
             logger.warning(
                     "Cannot find " + PREFERRED_ID + " component. It will not be located properly in the window system.");
             return getDefault();
         }
-        if (win instanceof SceneExplorerTopComponent) {
-            return (SceneExplorerTopComponent) win;
+        if (window instanceof SceneExplorerTopComponent sceneExplorerTopComponent) {
+            return sceneExplorerTopComponent;
         }
         logger.warning(
                 "There seem to be multiple components with the '" + PREFERRED_ID
@@ -216,25 +222,18 @@ public final class SceneExplorerTopComponent extends TopComponent implements Exp
         SceneApplication.getApplication().removeSceneListener(this);
         // TODO add custom code on component closing
     }
-
+    
     void writeProperties(java.util.Properties p) {
-        // better to version settings since initial version as advocated at
-        // http://wiki.apidesign.org/wiki/PropertyFiles
+        // Required. Do not remove.
         p.setProperty("version", "1.0");
-        // TODO store your settings
     }
-
+    
     Object readProperties(java.util.Properties p) {
+        // Required. Do not remove.
         if (instance == null) {
             instance = this;
         }
-        instance.readPropertiesImpl(p);
         return instance;
-    }
-
-    private void readPropertiesImpl(java.util.Properties p) {
-        String version = p.getProperty("version");
-        // TODO read your settings according to their version
     }
 
     @Override
@@ -246,46 +245,32 @@ public final class SceneExplorerTopComponent extends TopComponent implements Exp
     public UndoRedo getUndoRedo() {
         return Lookup.getDefault().lookup(UndoRedo.class);
     }
-    private transient ExplorerManager explorerManager = new ExplorerManager();
 
     @Override
     public ExplorerManager getExplorerManager() {
         return explorerManager;
     }
 
-    public void setSelectedNode(AbstractSceneExplorerNode node) {
-        selectedSpatial = node;
-        if (node != null) {
-            lastSelected = node;
+    public void setSelectedNode(AbstractSceneExplorerNode[] nodes) {
+        selectedSpatials = nodes;
+        if (nodes != null) {
+            lastSelected = nodes;
         }
         try {
-            if (node != null) {
-                explorerManager.setSelectedNodes(new Node[]{node});
-//                setActivatedNodes(new Node[]{node});
+            if (nodes != null) {
+                explorerManager.setSelectedNodes(nodes);
             } else {
                 explorerManager.setSelectedNodes(new Node[]{});
-//                setActivatedNodes(new Node[]{});
             }
-        } catch (Exception ex) {
+        } catch (PropertyVetoException ex) {
             Exceptions.printStackTrace(ex);
         }
     }
 
-//    public void resultChanged(LookupEvent ev) {
-//        Collection collection = nodeSelectionResult.allInstances();
-//        for (Iterator it = collection.iterator(); it.hasNext();) {
-//            Object object = it.next();
-//            if (object instanceof AbstractSceneExplorerNode) {
-//                return;
-//            }
-//        }
-//        selectedSpatial = null;
-//    }
     @Override
     public void sceneOpened(SceneRequest request) {
         final JmeNode node = request.getJmeNode();
-        for (Iterator it = materialChangeProviders.values().iterator(); it.hasNext();) {
-            MaterialChangeProvider provider = (MaterialChangeProvider) it.next();
+        for (MaterialChangeProvider provider : materialChangeProviders.values()) {
             provider.clearMaterialChangeListeners();
         }
         if (node != null) {
@@ -310,11 +295,11 @@ public final class SceneExplorerTopComponent extends TopComponent implements Exp
     @Override
     public void previewCreated(PreviewRequest request) {
     }
-
+    
     /**
      * @return the selectedSpatial
      */
-    public AbstractSceneExplorerNode getLastSelected() {
+    public AbstractSceneExplorerNode[] getLastSelected() {
         return lastSelected;
     }
 
@@ -339,7 +324,7 @@ public final class SceneExplorerTopComponent extends TopComponent implements Exp
             logger.log(Level.FINE, "New material listener for : {0}", listener.getKey());
             List<MaterialChangeListener> listeners = materialChangeListeners.get(listener.getKey());
             if (listeners == null) {
-                listeners = new ArrayList<MaterialChangeListener>();
+                listeners = new ArrayList<>();
                 materialChangeListeners.put(listener.getKey(), listeners);
             }
             listeners.add(listener);
@@ -383,7 +368,7 @@ public final class SceneExplorerTopComponent extends TopComponent implements Exp
             //  assert newKey.equals(listener.getKey());
             List<MaterialChangeListener> listeners = materialChangeListeners.get(newKey);
             if (listeners == null) {
-                listeners = new ArrayList<MaterialChangeListener>();
+                listeners = new ArrayList<>();
                 materialChangeListeners.put(newKey, listeners);
             }
             listeners.add(listener);
@@ -397,6 +382,7 @@ public final class SceneExplorerTopComponent extends TopComponent implements Exp
 
     /**
      * Terrain has a LOD control that requires the camera to function.
+     * @param jmeRootNode
      */
     protected void setTerrainLodCamera(JmeNode jmeRootNode) {
         Camera camera = SceneApplication.getApplication().getCamera();
