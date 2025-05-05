@@ -29,7 +29,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jme3.gde.templates.jaimesascent;
+package com.jme3.gde.templates.downloadedproject;
 
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
@@ -37,12 +37,12 @@ import javax.swing.event.DocumentListener;
 import org.openide.WizardDescriptor;
 import org.openide.WizardValidationException;
 
-public class JaimesAscentDownloadPanelVisual extends JPanel implements DocumentListener {
+public class ProjectDownloadPanelVisual extends JPanel implements DocumentListener {
 
     public static final String PROP_PROJECT_NAME = "projectName";
-    private final JaimesAscentDownloadPanel panel;
+    private final ProjectDownloadPanel panel;
 
-    public JaimesAscentDownloadPanelVisual(JaimesAscentDownloadPanel panel) {
+    public ProjectDownloadPanelVisual(ProjectDownloadPanel panel) {
         initComponents();
         this.panel = panel;
     }
@@ -61,8 +61,8 @@ public class JaimesAscentDownloadPanelVisual extends JPanel implements DocumentL
         statusField = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
 
-        org.openide.awt.Mnemonics.setLocalizedText(downloadButton, org.openide.util.NbBundle.getMessage(JaimesAscentDownloadPanelVisual.class, "JaimesAscentDownloadPanelVisual.downloadButton.text")); // NOI18N
-        downloadButton.setActionCommand(org.openide.util.NbBundle.getMessage(JaimesAscentDownloadPanelVisual.class, "JaimesAscentDownloadPanelVisual.downloadButton.actionCommand")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(downloadButton, org.openide.util.NbBundle.getMessage(ProjectDownloadPanelVisual.class, "ProjectDownloadPanelVisual.downloadButton.text")); // NOI18N
+        downloadButton.setActionCommand(org.openide.util.NbBundle.getMessage(ProjectDownloadPanelVisual.class, "ProjectDownloadPanelVisual.downloadButton.actionCommand")); // NOI18N
         downloadButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 downloadButtonActionPerformed(evt);
@@ -73,13 +73,13 @@ public class JaimesAscentDownloadPanelVisual extends JPanel implements DocumentL
         jTextArea1.setColumns(20);
         jTextArea1.setLineWrap(true);
         jTextArea1.setRows(5);
-        jTextArea1.setText(org.openide.util.NbBundle.getMessage(JaimesAscentDownloadPanelVisual.class, "JaimesAscentDownloadPanelVisual.jTextArea1.text")); // NOI18N
+        jTextArea1.setText(org.openide.util.NbBundle.getMessage(ProjectDownloadPanelVisual.class, "ProjectDownloadPanelVisual.jTextArea1.text")); // NOI18N
         jTextArea1.setWrapStyleWord(true);
         jTextArea1.setEnabled(false);
         jScrollPane1.setViewportView(jTextArea1);
 
         statusField.setEditable(false);
-        statusField.setText(org.openide.util.NbBundle.getMessage(JaimesAscentDownloadPanelVisual.class, "JaimesAscentDownloadPanelVisual.statusField.text")); // NOI18N
+        statusField.setText(org.openide.util.NbBundle.getMessage(ProjectDownloadPanelVisual.class, "ProjectDownloadPanelVisual.statusField.text")); // NOI18N
         statusField.setEnabled(false);
         statusField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -87,8 +87,8 @@ public class JaimesAscentDownloadPanelVisual extends JPanel implements DocumentL
             }
         });
 
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/jme3/gde/templates/jaimesascent/jaimesascent.png"))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(JaimesAscentDownloadPanelVisual.class, "JaimesAscentDownloadPanelVisual.jLabel1.text")); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/jme3/gde/templates/downloadedproject/jaimesascent.png"))); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(ProjectDownloadPanelVisual.class, "ProjectDownloadPanelVisual.jLabel1.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -127,12 +127,12 @@ public class JaimesAscentDownloadPanelVisual extends JPanel implements DocumentL
     }// </editor-fold>//GEN-END:initComponents
 
     private void downloadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadButtonActionPerformed
-        statusField.setText(org.openide.util.NbBundle.getMessage(JaimesAscentDownloadPanelVisual.class, "JaimesAscentDownloadPanelVisual.downloading"));
+        statusField.setText(org.openide.util.NbBundle.getMessage(ProjectDownloadPanelVisual.class, "JaimesAscentDownloadPanelVisual.downloading"));
         final int result = this.panel.doDownloadZip();
         if (result == 1) {
-            statusField.setText(org.openide.util.NbBundle.getMessage(JaimesAscentDownloadPanelVisual.class, "JaimesAscentDownloadPanelVisual.downloadSuccess"));
+            statusField.setText(org.openide.util.NbBundle.getMessage(ProjectDownloadPanelVisual.class, "JaimesAscentDownloadPanelVisual.downloadSuccess"));
         } else {
-            statusField.setText(org.openide.util.NbBundle.getMessage(JaimesAscentDownloadPanelVisual.class, "JaimesAscentDownloadPanelVisual.downloadFailed"));
+            statusField.setText(org.openide.util.NbBundle.getMessage(ProjectDownloadPanelVisual.class, "JaimesAscentDownloadPanelVisual.downloadFailed"));
         }
     }//GEN-LAST:event_downloadButtonActionPerformed
 

@@ -29,7 +29,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jme3.gde.templates.jaimesascent;
+package com.jme3.gde.templates.downloadedproject;
 
 import java.io.File;
 import javax.swing.JFileChooser;
@@ -42,14 +42,15 @@ import org.openide.WizardDescriptor;
 import org.openide.WizardValidationException;
 import org.openide.filesystems.FileUtil;
 
-public class JaimesAscentPanelVisual extends JPanel implements DocumentListener {
+public class ExampleProjectPanelVisual extends JPanel implements DocumentListener {
 
     public static final String PROP_PROJECT_NAME = "projectName";
-    static final String PROJECT_NAME = "JaimesAscent";
-    private final JaimesAscentWizardPanel panel;
+    private final ExampleProjectWizardPanel panel;
+    private final Config config;
 
-    public JaimesAscentPanelVisual(JaimesAscentWizardPanel panel) {
+    public ExampleProjectPanelVisual(ExampleProjectWizardPanel panel, Config config) {
         initComponents();
+        this.config = config;
         this.panel = panel;
         // Register listener on the textFields to make the automatic updates
         projectNameTextField.getDocument().addDocumentListener(this);
@@ -77,13 +78,13 @@ public class JaimesAscentPanelVisual extends JPanel implements DocumentListener 
         createdFolderTextField = new javax.swing.JTextField();
 
         projectNameLabel.setLabelFor(projectNameTextField);
-        org.openide.awt.Mnemonics.setLocalizedText(projectNameLabel, org.openide.util.NbBundle.getMessage(JaimesAscentPanelVisual.class, "JaimesAscentPanelVisual.projectNameLabel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(projectNameLabel, org.openide.util.NbBundle.getMessage(ExampleProjectPanelVisual.class, "ExampleProjectPanelVisual.projectNameLabel.text")); // NOI18N
 
         projectLocationLabel.setLabelFor(projectLocationTextField);
-        org.openide.awt.Mnemonics.setLocalizedText(projectLocationLabel, org.openide.util.NbBundle.getMessage(JaimesAscentPanelVisual.class, "JaimesAscentPanelVisual.projectLocationLabel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(projectLocationLabel, org.openide.util.NbBundle.getMessage(ExampleProjectPanelVisual.class, "ExampleProjectPanelVisual.projectLocationLabel.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(browseButton, org.openide.util.NbBundle.getMessage(JaimesAscentPanelVisual.class, "JaimesAscentPanelVisual.browseButton.text")); // NOI18N
-        browseButton.setActionCommand(org.openide.util.NbBundle.getMessage(JaimesAscentPanelVisual.class, "JaimesAscentPanelVisual.browseButton.actionCommand")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(browseButton, org.openide.util.NbBundle.getMessage(ExampleProjectPanelVisual.class, "ExampleProjectPanelVisual.browseButton.text")); // NOI18N
+        browseButton.setActionCommand(org.openide.util.NbBundle.getMessage(ExampleProjectPanelVisual.class, "ExampleProjectPanelVisual.browseButton.actionCommand")); // NOI18N
         browseButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 browseButtonActionPerformed(evt);
@@ -91,7 +92,7 @@ public class JaimesAscentPanelVisual extends JPanel implements DocumentListener 
         });
 
         createdFolderLabel.setLabelFor(createdFolderTextField);
-        org.openide.awt.Mnemonics.setLocalizedText(createdFolderLabel, org.openide.util.NbBundle.getMessage(JaimesAscentPanelVisual.class, "JaimesAscentPanelVisual.createdFolderLabel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(createdFolderLabel, org.openide.util.NbBundle.getMessage(ExampleProjectPanelVisual.class, "ExampleProjectPanelVisual.createdFolderLabel.text")); // NOI18N
 
         createdFolderTextField.setEditable(false);
 
@@ -235,7 +236,7 @@ public class JaimesAscentPanelVisual extends JPanel implements DocumentListener 
 
         String projectName = (String) settings.getProperty("name");
         if (projectName == null) {
-            projectName = PROJECT_NAME;
+            projectName = config.getProjectName();
         }
         this.projectNameTextField.setText(projectName);
         this.projectNameTextField.selectAll();
