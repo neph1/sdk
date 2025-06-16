@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2010 jMonkeyEngine
+ * Copyright (c) 2009-2025 jMonkeyEngine
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,6 +100,8 @@ public class TerrainEditorController implements NodeListener {
     //private InstanceContent content;
 
     class TerrainSaveCookie implements SaveCookie {
+        JmeSpatial rootNode;
+
         @Override
         public void save() throws IOException {
             if (alphaLayersChanged) {
