@@ -86,7 +86,7 @@ public class JmeAnimComposerChildren extends Children.Keys<Object> {
                 AnimComposer composer = jmeAnimComposer.getLookup().lookup(AnimComposer.class);
                 if (composer != null) {
                     List<AnimClip> animClips = new ArrayList<>(composer.getAnimClips());
-                    Collections.sort(animClips, (AnimClip a, AnimClip b) -> a.getName().compareTo(b.getName()));
+                    Collections.sort(animClips, Comparator.comparing(AnimClip::getName));
                     keys.addAll(animClips);
 
                     final Set<String> layerNames = composer.getLayerNames();
