@@ -316,7 +316,7 @@ tasks.register('copyProjectBaseLibraries', Copy) {
     from(configurations.optlibs)
 
     include { details ->
-        def name = details.file.name
+        def name = details.name
         isSource(name) || isJavadoc(name) || isJmeDep(name)
     }
 
@@ -333,7 +333,7 @@ tasks.register('copyProjectLibraries', Copy) {
     from(configurations.optlibs)
 
     exclude { details ->
-        def name = details.file.name
+        def name = details.name
         isSource(name) || isJavadoc(name) || isJmeDep(name)
     }
 
@@ -347,7 +347,7 @@ tasks.register('copyProjectTestData', Copy) {
     description = 'Copies jme3 test data'
 
     from(configurations.testdatalibs) {
-        include { isJmeDep(it.file.name) }
+        include { isJmeDep(it.name) }
     }
 
     into "jme3-project-testdata/release/modules/ext/"
@@ -390,14 +390,14 @@ ext.buildDependencyResolver = { configs ->
     def artifactsByComponent = allArtifacts.groupBy { it.id.componentIdentifier }
 
     def collectTree
-    collectTree = { component, visited ->
+    collectTree = { component, visited, result ->
         if (!visited.add(component.id)) return []
 
-        def result = [component]
+        result.add(component)
 
         component.dependencies.each { d ->
             if (d instanceof ResolvedDependencyResult) {
-                result += collectTree(d.selected, visited)
+                collectTree(d.selected, visited, result)
             }
         }
 
@@ -409,7 +409,8 @@ ext.buildDependencyResolver = { configs ->
         def rootComponent = rootDepsByKey[key]
         if (!rootComponent) return []
 
-        def components = collectTree(rootComponent, new HashSet())
+        def components = []
+        collectTree(rootComponent, new HashSet(), components)
 
         components.collectMany { comp ->
             artifactsByComponent[comp.id] ?: []
@@ -435,13 +436,16 @@ tasks.register('createProjectXml') {
 
         deps.each { dep ->
 
+            def artifacts = resolveClosure(dep)
+            if (artifacts.isEmpty()) {
+                return
+            }
+
             def name = dep.name
             if (j2seLibraries.contains(name + ".xml")) {
                 return;
             }
             j2seLibraries.add(name + ".xml")
-
-            def artifacts = resolveClosure(dep)
 
             def jmeJarFiles = [] // jme3 jar files
             def jmeSourceFiles = [] // jme3 sources
