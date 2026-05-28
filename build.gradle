@@ -309,137 +309,173 @@ createBaseXml.inputs.files configurations.corelibs.resolve()
 createBaseXml.outputs.file "jme3-core-baselibs/nbproject/project.xml"
 createBaseXml.outputs.file "jme3-core-libraries/nbproject/project.xml"
 
-tasks.register('copyProjectLibs') {
-    dependsOn configurations.corelibs, configurations.testdatalibs
-    doLast {
-        description = "Copies the jar files needed to supply the J2SE Libraries in the " +
-                "SDK to jme3-project-baselibs and jme3-project-libraries"
+tasks.register('copyProjectBaseLibraries', Copy) {
+    description = 'Copies JME base libraries (jars, sources, javadocs)'
 
-        // for each dependency in corelibs and optlibs..
-        def deps = []
-        deps.addAll(project.configurations.corelibs.files)
-        deps.addAll(project.configurations.optlibs.files)
-        deps.each { dep ->
-            // copy jme3 jar files, sources and javadocs to jme3-project-baselibs
+    from(configurations.corelibs)
+    from(configurations.optlibs)
 
-            if (isSource(dep.name)) {
-                copy {
-                    from dep
-                    into "jme3-project-baselibs/release/libs/"
-                }
-            } else if (isJavadoc(dep.name)) {
-                copy {
-                    from dep
-                    into "jme3-project-baselibs/release/libs/"
-                }
-            } else if (isJmeDep(dep.name)) {
-                copy {
-                    from dep
-                    into "jme3-project-baselibs/release/libs/"
-                }
-            } else {
-                copy {
-                    from dep
-                    into "jme3-project-libraries/release/libs/"
-                }
-            }
-
-        }
-
-        project.configurations.testdatalibs.files.each { dep ->
-            // copy jme3 test data to jme3-project-testdata
-            if (isJmeDep(dep.name)) {
-                copy {
-                    from dep
-                    into "jme3-project-testdata/release/modules/ext/"
-                    rename("jme3-testdata(.*)", "jme3-testdata.jar")
-                }
-            }
-        }
+    include { details ->
+        def name = details.name
+        isSource(name) || isJavadoc(name) || isJmeDep(name)
     }
+
+    into "jme3-project-baselibs/release/libs/"
+
+    includeEmptyDirs = false
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
-copyProjectLibs.inputs.files configurations.corelibs.resolve()
-copyProjectLibs.inputs.files configurations.optlibs.resolve()
-copyProjectLibs.inputs.files configurations.testdatalibs.resolve()
-copyProjectLibs.outputs.dir "jme3-project-baselibs/release/libs/"
-copyProjectLibs.outputs.dir "jme3-project-libraries/release/libs/"
-copyProjectLibs.outputs.dir "jme3-project-testdata/release/modules/ext/"
+
+tasks.register('copyProjectLibraries', Copy) {
+    description = 'Copies third-party project libraries'
+
+    from(configurations.corelibs)
+    from(configurations.optlibs)
+
+    exclude { details ->
+        def name = details.name
+        isSource(name) || isJavadoc(name) || isJmeDep(name)
+    }
+
+    into "jme3-project-libraries/release/libs/"
+
+    includeEmptyDirs = false
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+tasks.register('copyProjectTestData', Copy) {
+    description = 'Copies jme3 test data'
+
+    from(configurations.testdatalibs) {
+        include { isJmeDep(it.name) }
+    }
+
+    into "jme3-project-testdata/release/modules/ext/"
+
+    rename(/jme3-testdata(.*)/, 'jme3-testdata.jar')
+
+    includeEmptyDirs = false
+}
+
+tasks.register('copyProjectLibs') {
+    description = 'Copies all project libraries and test data'
+    dependsOn 'copyProjectBaseLibraries', 'copyProjectLibraries', 'copyProjectTestData'
+}
 
 // workaround method to add a tag with the name "name" and "file" to an XML MarkupBuilder
 static def makeName(builder, nameR) { builder.name nameR }
 
 static def makeFile(builder, nameR) { builder.file(name:nameR, url:nameR) }
 
+ext.buildDependencyResolver = { configs ->
+
+    def allArtifacts = []
+    def rootDepsByKey = [:]
+
+    configs.each { cfg ->
+        def resolution = cfg.incoming.resolutionResult
+
+        resolution.root.dependencies.each { d ->
+            if (d instanceof ResolvedDependencyResult) {
+                def id = d.selected.id
+                if (id instanceof ModuleComponentIdentifier) {
+                    rootDepsByKey["${id.group}:${id.module}"] = d.selected
+                }
+            }
+        }
+
+        allArtifacts.addAll(cfg.incoming.artifacts.artifacts)
+    }
+
+    def artifactsByComponent = allArtifacts.groupBy { it.id.componentIdentifier }
+
+    def collectTree
+    collectTree = { component, visited, result ->
+        if (!visited.add(component.id)) return []
+
+        result.add(component)
+
+        component.dependencies.each { d ->
+            if (d instanceof ResolvedDependencyResult) {
+                collectTree(d.selected, visited, result)
+            }
+        }
+
+        return result
+    }
+
+    return { dep ->
+        def key = "${dep.group}:${dep.name}"
+        def rootComponent = rootDepsByKey[key]
+        if (!rootComponent) return []
+
+        def components = []
+        collectTree(rootComponent, new HashSet(), components)
+
+        components.collectMany { comp ->
+            artifactsByComponent[comp.id] ?: []
+        }
+    }
+}
+
 tasks.register('createProjectXml') {
-    dependsOn configurations.corelibs
+    inputs.files(configurations.corelibs)
+    inputs.files(configurations.optlibs)
+    outputs.dir "jme3-project-baselibs/src/com/jme3/gde/project/baselibs/"
     doLast {
         description = "Creates needed J2SE library and layer XML files in jme3-project-baselibs"
 
         def eol = System.properties.'line.separator'
         def j2seLibraries = [] // created J2SE library descriptors
 
+        def resolveClosure = buildDependencyResolver([configurations.corelibs, configurations.optlibs])
 
-        // for each dependency in corelibs..
         def deps = []
         deps.addAll(project.configurations.corelibs.dependencies)
         deps.addAll(project.configurations.optlibs.dependencies)
+
         deps.each { dep ->
+
+            def artifacts = resolveClosure(dep)
+            if (artifacts.isEmpty()) {
+                return
+            }
+
+            def name = dep.name
+            if (j2seLibraries.contains(name + ".xml")) {
+                return;
+            }
+            j2seLibraries.add(name + ".xml")
+
             def jmeJarFiles = [] // jme3 jar files
             def jmeSourceFiles = [] // jme3 sources
             def jmeJavadocFiles = [] // jme3 javadoc
             def externalJarFiles = [] // external jar files
-            if (j2seLibraries.contains(dep.name + ".xml")) {
-                return;
-            }
 
-            j2seLibraries.add(dep.name + ".xml")
-            project.configurations.corelibs.files.findAll { d -> return d.name == dep.name }.each { file ->
-                if (isSource(file.name)) {
-                    if (!jmeSourceFiles.contains(file.name)) {
-                        jmeSourceFiles.add(file.name)
-                    }
-                } else if (isJavadoc(file.name)) {
-                    if (!jmeJavadocFiles.contains(file.name)) {
-                        jmeJavadocFiles.add(file.name)
-                    }
-                } else if (isJmeDep(file.name)) {
-                    if (!jmeJarFiles.contains(file.name)) {
-                        jmeJarFiles.add(file.name)
-                    }
+            artifacts.each { art ->
+                def file = art.file
+                def fileName = file.name
+
+                if (isSource(fileName)) {
+                    if (!jmeSourceFiles.contains(fileName))
+                        jmeSourceFiles.add(fileName)
+                } else if (isJavadoc(fileName)) {
+                    if (!jmeJavadocFiles.contains(fileName))
+                        jmeJavadocFiles.add(fileName)
+                } else if (isJmeDep(fileName)) {
+                    if (!jmeJarFiles.contains(fileName))
+                        jmeJarFiles.add(fileName)
                 } else {
-                    if (!externalJarFiles.contains(file.name)) {
-                        externalJarFiles.add(file.name)
-                    }
-                }
-            }
-
-            project.configurations.optlibs.files.findAll { d -> return d.name == dep.name }.each { file ->
-
-                if (isSource(file.name)) {
-                    if (!jmeSourceFiles.contains(file.name)) {
-                        jmeSourceFiles.add(file.name)
-                    }
-                } else if (isJavadoc(file.name)) {
-                    if (!jmeJavadocFiles.contains(file.name)) {
-                        jmeJavadocFiles.add(file.name)
-                    }
-                } else if (isJmeDep(file.name)) {
-                    if (!jmeJarFiles.contains(file.name)) {
-                        jmeJarFiles.add(file.name)
-                    }
-                } else {
-                    if (!externalJarFiles.contains(file.name)) {
-                        externalJarFiles.add(file.name)
-                    }
+                    if (!externalJarFiles.contains(fileName))
+                        externalJarFiles.add(fileName)
                 }
             }
 
             // Workarounds where the automatic dependency detection did not work. This is mainly when there are runtime dependencies which are not available as artifacts
-            if (dep.name.equals("jme3-jbullet")) {
+            if (name == "jme3-jbullet") {
                 externalJarFiles.add("jbullet.jar")
                 externalJarFiles.add("stack-alloc.jar")
             }
-
 
             // create J2SE library descriptor xml file
             def libraryWriter = new StringWriter()
@@ -448,7 +484,7 @@ tasks.register('createProjectXml') {
             libraryWriter << '<?xml version="1.0" encoding="UTF-8"?>' << eol
             libraryWriter << '<!DOCTYPE library PUBLIC "-//NetBeans//DTD Library Declaration 1.0//EN" "http://www.netbeans.org/dtds/library-declaration-1_0.dtd">' << eol
             libraryXml.library(version: "1.0", encoding: "UTF-8") {
-                makeName(libraryXml, "${dep.name}")
+                makeName(libraryXml, "${name}")
                 type "j2se"
                 "localizing-bundle" "com.jme3.gde.project.baselibs.Bundle"
                 volume {
@@ -461,7 +497,7 @@ tasks.register('createProjectXml') {
                      * If we would add all those each library would have it's one jme3-core, which might even lead
                      * to build errors then.
                      */
-                    if (dep.name.equals("jme3_xbuf")) {
+                    if (name == "jme3_xbuf") {
                         jmeJarFiles.each { jar ->
                             if (jar.startsWith("jme3_xbuf")) {
                                 /* Technically you would only need the loaders, not the spatial viewer,
@@ -490,7 +526,7 @@ tasks.register('createProjectXml') {
                 }
             }
             // write XML file
-            File libraryXmlFile = file("jme3-project-baselibs/src/com/jme3/gde/project/baselibs/${dep.name}.xml");
+            File libraryXmlFile = file("jme3-project-baselibs/src/com/jme3/gde/project/baselibs/${name}.xml");
             libraryXmlFile.write(libraryWriter.toString())
         }
 
@@ -513,9 +549,6 @@ tasks.register('createProjectXml') {
         layerXmlFile.write(layerWriter.toString())
     }
 }
-createProjectXml.inputs.files configurations.corelibs.resolve()
-createProjectXml.inputs.files configurations.optlibs.resolve()
-createProjectXml.outputs.dir "jme3-project-baselibs/src/com/jme3/gde/project/baselibs/"
 
 tasks.register('copyTestSources') {
     doLast {
