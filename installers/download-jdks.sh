@@ -11,11 +11,18 @@ jdk_vendor="eclipse"
 function download_jdk {
     echo ">>> Downloading the JDK for $1_$2$3"
 
+    # Translate our OS names to Adoptium API OS names
+    jdkOsString=$2
+    case "$jdkOsString" in
+      macos)   jdkOsString="mac" ;;
+      *)
+    esac
+
     if [ -f "$2-$1/jdk-$1_$2$3" ];
     then
         echo "<<< Already existing, SKIPPING."
     else
-        curl -# -o "$2-$1/jdk-$1_$2$3" -L "https://api.adoptium.net/v3/binary/latest/$jdk_major_version/ga/$2/$1/jdk/$jvm_impl/normal/$jdk_vendor?project=jdk"
+        curl -f -# -o "$2-$1/jdk-$1_$2$3" -L "https://api.adoptium.net/v3/binary/latest/$jdk_major_version/ga/$jdkOsString/$1/jdk/$jvm_impl/normal/$jdk_vendor?project=jdk"
         echo "<<< OK!"
     fi
 }
@@ -49,25 +56,33 @@ function get_jdk_linux {
 function get_jdk {
     echo "> Getting JDK for $1-$2"
 
-    if [[ $1 != "windows" && $1 != "linux" && $1 != "macos" ]]; then
+    if [[ $1 != "Windows" && $1 != "Linux" && $1 != "macOS" ]]; then
         echo "Unknown Platform $1. ERROR!!!"
         exit 1
     fi
 
+    arch_raw="${2:-}"
+
+    case "$arch_raw" in
+      X86)   arch="x86" ;;
+      X64)   arch="x64" ;;
+      ARM)   arch="arm" ;;
+      ARM64) arch="aarch64" ;;
+      *)
+        echo "Unknown Architecture $arch_raw. ERROR!!!"
+        exit 1
+    esac
+
     # Depends on UNPACK and thus DOWNLOAD
-    if [ "$1" == "windows" ]; then
-        get_jdk_windows "$2"
-    elif [ "$1" == "linux" ]; then
-        get_jdk_linux "$2"
-    elif [ "$1" == "macos" ]; then
-        get_jdk_macos "$2"
+    if [ "$1" == "Windows" ]; then
+        get_jdk_windows "$arch"
+    elif [ "$1" == "Linux" ]; then
+        get_jdk_linux "$arch"
+    elif [ "$1" == "macOS" ]; then
+        get_jdk_macos "$arch"
     fi
 
     echo "< OK!"
 }
 
-get_jdk linux x64
-get_jdk linux aarch64
-get_jdk windows x64
-#get_jdk macos x64
-#get_jdk macos aarch64
+get_jdk "$1" "$2"
