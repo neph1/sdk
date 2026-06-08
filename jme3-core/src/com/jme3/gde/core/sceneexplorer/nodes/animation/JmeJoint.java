@@ -122,7 +122,7 @@ public class JmeJoint extends AbstractSceneExplorerNode {
         JmeJointChildren children = new JmeJointChildren(jmeSkinningControl, (Joint)key);
         children.setReadOnly(cookie);
         children.setDataObject(key2);
-        return new org.openide.nodes.Node[]{new JmeJoint(jmeSkinningControl, (Joint)key, children, dataObject).setReadOnly(cookie)};
+        return new org.openide.nodes.Node[]{new JmeJoint(jmeSkinningControl, (Joint)key, children, key2).setReadOnly(cookie)};
     }
     
     
