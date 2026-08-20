@@ -23,7 +23,10 @@ public final class OpenTexture implements ActionListener {
 
     public void actionPerformed(ActionEvent ev) {
         FileObject file = context.getPrimaryFile();
-        ImageEditorTopComponent display = new ImageEditorTopComponent();
+        ImageEditorTopComponent display = ImageEditorTopComponent.getInstanceFromFile(file);
+        if(display == null) {
+            display = new ImageEditorTopComponent();
+        }
         try {
             display.setEditedImage(file);
             display.open();
@@ -36,4 +39,5 @@ public final class OpenTexture implements ActionListener {
             Exceptions.printStackTrace(ex);
         }
     }
+
 }

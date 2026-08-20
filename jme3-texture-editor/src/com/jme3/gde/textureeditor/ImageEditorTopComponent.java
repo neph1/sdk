@@ -9,6 +9,8 @@ import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
@@ -25,12 +27,15 @@ import org.openide.util.lookup.AbstractLookup;
 autostore = false)
 public final class ImageEditorTopComponent extends TopComponent {
 
+    private static List<ImageEditorTopComponent> activeComponents = new ArrayList<>();
+    
     private static ImageEditorTopComponent instance;
     /** path to the icon used by the component and its open action */
     static final String ICON_PATH = Icons.TEXTURE_GREEN;
     private static final String PREFERRED_ID = "ImageEditorTopComponent";
     private final ImageEditorComponent EDITOR = ImageEditorComponent.create();
-
+    private FileObject currentFile;
+    
     public ImageEditorTopComponent() {
         initComponents();
         setName(NbBundle.getMessage(ImageEditorTopComponent.class, "CTL_ImageEditorTopComponent"));
@@ -93,12 +98,12 @@ public final class ImageEditorTopComponent extends TopComponent {
 
     @Override
     public void componentOpened() {
-        // TODO add custom code on component opening
+        activeComponents.add(this);
     }
 
     @Override
     public void componentClosed() {
-        // TODO add custom code on component closing
+        activeComponents.remove(this);
     }
 
     void writeProperties(java.util.Properties p) {
@@ -132,8 +137,18 @@ public final class ImageEditorTopComponent extends TopComponent {
         } else {
             setName("PixelHead - No name");
         }
+        currentFile = file;
         BufferedImage image = IOModule.create().load(file);
         EDITOR.setEditedImage(this, image, file);
+    }
+
+    public static ImageEditorTopComponent getInstanceFromFile(FileObject file) {
+        for(ImageEditorTopComponent component : activeComponents ) {
+            if (component.currentFile.equals(file)) {
+                return component;
+            }
+        }
+        return null;
     }
 
     void setEditedImage(BufferedImage image) {
