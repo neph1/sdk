@@ -18,25 +18,29 @@ import org.openide.windows.WindowManager;
 import org.openide.util.ImageUtilities;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.filesystems.FileObject;
+import org.openide.loaders.DataObject;
+import org.openide.util.Exceptions;
 import org.openide.util.lookup.AbstractLookup;
+import org.openide.windows.CloneableTopComponent;
 
 /**
  * Top component which displays something.
  */
 @ConvertAsProperties(dtd = "-//com.jme3.gde.textureeditor//ImageEditor//EN",
 autostore = false)
-public final class ImageEditorTopComponent extends TopComponent {
+public final class ImageEditorTopComponent  extends CloneableTopComponent {
 
-    private static List<ImageEditorTopComponent> activeComponents = new ArrayList<>();
-    
     private static ImageEditorTopComponent instance;
     /** path to the icon used by the component and its open action */
     static final String ICON_PATH = Icons.TEXTURE_GREEN;
     private static final String PREFERRED_ID = "ImageEditorTopComponent";
     private final ImageEditorComponent EDITOR = ImageEditorComponent.create();
-    private FileObject currentFile;
     
     public ImageEditorTopComponent() {
+        
+    }
+    
+    public ImageEditorTopComponent(FileObject currentFile) {
         initComponents();
         setName(NbBundle.getMessage(ImageEditorTopComponent.class, "CTL_ImageEditorTopComponent"));
         setToolTipText(NbBundle.getMessage(ImageEditorTopComponent.class, "HINT_ImageEditorTopComponent"));
@@ -45,6 +49,11 @@ public final class ImageEditorTopComponent extends TopComponent {
 
         //Add the dynamic object to the TopComponent Lookup:
         associateLookup(new AbstractLookup(EDITOR.getContent()));
+        try {
+            setEditedImage(currentFile);
+        } catch (IOException | URISyntaxException ex) {
+            Exceptions.printStackTrace(ex);
+        }
     }
 
     /** This method is called from within the constructor to
@@ -98,12 +107,10 @@ public final class ImageEditorTopComponent extends TopComponent {
 
     @Override
     public void componentOpened() {
-        activeComponents.add(this);
     }
 
     @Override
     public void componentClosed() {
-        activeComponents.remove(this);
     }
 
     void writeProperties(java.util.Properties p) {
@@ -137,18 +144,8 @@ public final class ImageEditorTopComponent extends TopComponent {
         } else {
             setName("PixelHead - No name");
         }
-        currentFile = file;
         BufferedImage image = IOModule.create().load(file);
         EDITOR.setEditedImage(this, image, file);
-    }
-
-    public static ImageEditorTopComponent getInstanceFromFile(FileObject file) {
-        for(ImageEditorTopComponent component : activeComponents ) {
-            if (component.currentFile.equals(file)) {
-                return component;
-            }
-        }
-        return null;
     }
 
     void setEditedImage(BufferedImage image) {

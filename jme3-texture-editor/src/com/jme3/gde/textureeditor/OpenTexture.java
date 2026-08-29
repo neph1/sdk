@@ -4,40 +4,37 @@
  */
 package com.jme3.gde.textureeditor;
 
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
+import org.openide.cookies.CloseCookie;
+import org.openide.cookies.OpenCookie;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
-import org.openide.util.Exceptions;
+import org.openide.loaders.OpenSupport;
+import org.openide.util.NbBundle;
+import org.openide.windows.CloneableTopComponent;
 
-public final class OpenTexture implements ActionListener {
+@NbBundle.Messages("CTL_OpenTexture=Edit Texture")
+@ActionID(id = "com.jme3.gde.textureeditor.OpenTexture", category = "Window")
+@ActionReferences({
+    @ActionReference(path = "Loaders/image/png/Actions", position = 0),
+    @ActionReference(path = "Loaders/image/jpeg/Actions", position = 0),
+    @ActionReference(path = "Loaders/image/image/x-jmetexture/Actions",     position = 0),
+    @ActionReference(path = "Loaders/text/plain/Actions",       position = 0),
+})
+public final class OpenTexture extends OpenSupport implements OpenCookie, CloseCookie {
 
-    private final DataObject context;
-
-    public OpenTexture(DataObject context) {
-        this.context = context;
+    public OpenTexture(JmeTextureDataObject.Entry entry) {
+        super(entry);
     }
-
-    public void actionPerformed(ActionEvent ev) {
-        FileObject file = context.getPrimaryFile();
-        ImageEditorTopComponent display = ImageEditorTopComponent.getInstanceFromFile(file);
-        if(display == null) {
-            display = new ImageEditorTopComponent();
-        }
-        try {
-            display.setEditedImage(file);
-            display.open();
-            display.requestActive();
-        } catch (URISyntaxException ex) {
-            Exceptions.printStackTrace(ex);
-        } catch (FileNotFoundException ex) {
-            Exceptions.printStackTrace(ex);
-        } catch (IOException ex) {
-            Exceptions.printStackTrace(ex);
-        }
+    
+    @Override
+    protected CloneableTopComponent createCloneableTopComponent() {
+        DataObject dobj = entry.getDataObject();
+        FileObject file = dobj.getPrimaryFile();
+        ImageEditorTopComponent display = new ImageEditorTopComponent(file);
+        return display;
     }
 
 }
