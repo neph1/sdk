@@ -62,7 +62,7 @@ public class SampleProjectWizardIterator extends AbstractProjectWizardIterator {
         downloadPanel = new SampleProjectDownloadPanel(config);
         return new WizardDescriptor.Panel[]{
             downloadPanel,
-            new ProjectWizardPanel(config.getDefaultProjectName())
+            new ProjectWizardPanel(config.getDefaultProjectName(), true)
         };
     }
 

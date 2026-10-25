@@ -50,11 +50,17 @@ public class ProjectWizardPanel implements WizardDescriptor.Panel,
         WizardDescriptor.ValidatingPanel, WizardDescriptor.FinishablePanel {
 
     private final String defaultProjectName;
+    private final boolean finishPanel;
     private WizardDescriptor wizardDescriptor;
     private ProjectWizardPanelVisual component;
 
     public ProjectWizardPanel(String defaultProjectName) {
+        this(defaultProjectName, false);
+    }
+
+    public ProjectWizardPanel(String defaultProjectName, boolean finishPanel) {
         this.defaultProjectName = defaultProjectName;
+        this.finishPanel = finishPanel;
     }
 
     @Override
@@ -118,7 +124,7 @@ public class ProjectWizardPanel implements WizardDescriptor.Panel,
 
     @Override
     public boolean isFinishPanel() {
-        return false;
+        return finishPanel;
     }
 
     @Override

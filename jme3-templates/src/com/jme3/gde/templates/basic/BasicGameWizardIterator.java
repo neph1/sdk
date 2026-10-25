@@ -54,7 +54,7 @@ public class BasicGameWizardIterator extends AbstractProjectWizardIterator {
     @Override
     protected WizardDescriptor.Panel[] createPanels() {
         return new WizardDescriptor.Panel[]{
-            new ProjectWizardPanel("BasicGame"),
+            new ProjectWizardPanel("BasicGame", true),
         };
     }
 

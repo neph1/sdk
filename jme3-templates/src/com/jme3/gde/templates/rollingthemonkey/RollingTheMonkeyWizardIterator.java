@@ -65,7 +65,7 @@ public class RollingTheMonkeyWizardIterator extends AbstractProjectWizardIterato
     @Override
     protected WizardDescriptor.Panel[] createPanels() {
         return new WizardDescriptor.Panel[]{
-            new ProjectWizardPanel("RollingTheMonkey")
+            new ProjectWizardPanel("RollingTheMonkey", true)
         };
     }
 
