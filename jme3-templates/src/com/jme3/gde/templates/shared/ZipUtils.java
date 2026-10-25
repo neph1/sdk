@@ -32,6 +32,7 @@
 package com.jme3.gde.templates.shared;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,6 +42,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import org.openide.xml.XMLUtil;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 public final class ZipUtils {
 
@@ -53,6 +59,10 @@ public final class ZipUtils {
      * If the archive contains a single top-level directory (as GitHub source
      * archives do), its contents are stripped so the project lands directly in
      * the project root regardless of the folder name inside the zip.
+     *
+     * If the archive contains {@code nbproject/project.xml} with an Ant-based
+     * project, the {@code <name>} element is replaced with the project root's
+     * folder name so NetBeans recognises the project.
      */
     public static void unZipFile(InputStream source, FileObject projectRoot) throws IOException {
         byte[] content = source.readAllBytes();
@@ -87,10 +97,48 @@ public final class ZipUtils {
                     FileUtil.createFolder(projectRoot, entryName);
                 } else {
                     FileObject fo = FileUtil.createData(projectRoot, entryName);
-                    try (OutputStream out = fo.getOutputStream()) {
-                        str.transferTo(out);
+                    if ("nbproject/project.xml".equals(entryName)) {
+                        filterProjectXML(str, fo, projectRoot.getName());
+                    } else {
+                        try (OutputStream out = fo.getOutputStream()) {
+                            str.transferTo(out);
+                        }
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Replaces the {@code <name>} element inside an Ant-based
+     * {@code nbproject/project.xml} with the actual project folder name, so
+     * NetBeans recognises the extracted project.
+     */
+    private static void filterProjectXML(ZipInputStream str, FileObject fo, String name) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        str.transferTo(baos);
+        byte[] content = baos.toByteArray();
+        try {
+            Document doc = XMLUtil.parse(new InputSource(new ByteArrayInputStream(content)), false, false, null, null);
+            NodeList nl = doc.getDocumentElement().getElementsByTagName("name");
+            if (nl != null) {
+                for (int i = 0; i < nl.getLength(); i++) {
+                    Element el = (Element) nl.item(i);
+                    if (el.getParentNode() != null && "data".equals(el.getParentNode().getNodeName())) {
+                        NodeList nl2 = el.getChildNodes();
+                        if (nl2.getLength() > 0) {
+                            nl2.item(0).setNodeValue(name);
+                        }
+                        break;
+                    }
+                }
+            }
+            try (OutputStream out = fo.getOutputStream()) {
+                XMLUtil.write(doc, out, "UTF-8");
+            }
+        } catch (Exception ex) {
+            try (OutputStream out = fo.getOutputStream()) {
+                out.write(content);
             }
         }
     }
