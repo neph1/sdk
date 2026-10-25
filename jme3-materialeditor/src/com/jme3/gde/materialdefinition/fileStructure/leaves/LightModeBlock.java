@@ -54,7 +54,7 @@ public class LightModeBlock extends LeafStatement {
         try {
             TechniqueDef.LightMode.valueOf(lightMode);
         } catch (IllegalArgumentException ex) {
-            throw new MatDefParseException("Invalid light mode \" + lightMode + "\", expected one of " + java.util.Arrays.toString(TechniqueDef.LightMode.values()), sta.getLineNumber(), sta.getLine(), ex);
+            throw new MatDefParseException("Invalid light mode \" + lightMode + \", expected one of " + java.util.Arrays.toString(TechniqueDef.LightMode.values()), sta.getLineNumber(), sta.getLine(), ex);
         }
     }
 }
