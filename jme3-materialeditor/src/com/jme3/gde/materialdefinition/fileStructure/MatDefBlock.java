@@ -63,6 +63,9 @@ public class MatDefBlock extends UberStatement {
             }
         }
         String[] s = line.split("\\s");
+        if (s.length < 2 || s[1].trim().isEmpty()) {
+            throw new MatDefParseException("MaterialDef statement is missing a name, expected \"MaterialDef MyMaterial\"", getLineNumber(), getLine());
+        }
         name = s[1];
     }
 

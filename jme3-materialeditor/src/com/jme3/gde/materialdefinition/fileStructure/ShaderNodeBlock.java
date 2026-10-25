@@ -42,6 +42,9 @@ public class ShaderNodeBlock extends UberStatement implements PropertyChangeList
     public ShaderNodeBlock(Statement sta) {
         this(sta.getLineNumber(), sta.getLine());
         String[] s = line.split("\\s");
+        if (s.length < 2 || s[1].trim().isEmpty()) {
+            throw new MatDefParseException("ShaderNode statement is missing a name, expected \"ShaderNode MyNode\"", getLineNumber(), getLine());
+        }
         name = s[1];
         for (Statement statement : sta.getContents()) {
             if (statement.getLine().trim().startsWith("Definition")) {
