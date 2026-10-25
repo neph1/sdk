@@ -61,6 +61,8 @@ public class TechniqueBlock extends UberStatement {
         String[] s = line.split("\\s");
         if (s.length == 1) {
             name = "Default";
+        } else if (s[1].trim().isEmpty()) {
+            throw new MatDefParseException("Technique statement is missing a name, expected \"Technique MyTechnique\"", getLineNumber(), getLine());
         } else {
             name = s[1];
         }
@@ -105,6 +107,10 @@ public class TechniqueBlock extends UberStatement {
 
     protected WorldParametersBlock getWorldParameters() {
         return getBlock(WorldParametersBlock.class);
+    }
+
+    public DefinesBlock getDefines() {
+        return getBlock(DefinesBlock.class);
     }
 
     public List<WorldParamBlock> getWorldParams() {
