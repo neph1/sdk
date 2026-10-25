@@ -208,6 +208,11 @@ public abstract class AbstractProjectWizardIterator implements WizardDescriptor.
         // Process template
         try {
             FileObject targetFO = FileUtil.toFileObject(target);
+            if (targetFO == null) {
+                // The generated files are not part of the template zips,
+                // so create the target file in the project folder first.
+                targetFO = FileUtil.createData(FileUtil.toFileObject(target.getParentFile()), target.getName());
+            }
             try (Writer os = new BufferedWriter(new OutputStreamWriter(targetFO.getOutputStream(), StandardCharsets.UTF_8)); Reader is = new BufferedReader(new InputStreamReader(getResourceAnchor().getResourceAsStream("/" + templateResourcePath)));) {
                 engine.getContext().setWriter(os);
                 engine.eval(is);
