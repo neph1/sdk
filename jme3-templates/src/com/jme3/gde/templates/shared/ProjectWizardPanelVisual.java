@@ -52,7 +52,6 @@ public class ProjectWizardPanelVisual extends JPanel implements DocumentListener
         this.panel = panel;
         this.defaultProjectName = defaultProjectName;
         initComponents();
-        setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 64));
         // Register listener on the textFields to make the automatic updates
         projectNameTextField.getDocument().addDocumentListener(this);
         projectLocationTextField.getDocument().addDocumentListener(this);
