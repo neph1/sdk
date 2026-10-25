@@ -57,6 +57,7 @@ public class SampleProjectDownloadPanelVisual extends JPanel {
         jTextArea1 = new javax.swing.JTextArea();
         statusField = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
+        nameLabel = new javax.swing.JLabel();
 
         org.openide.awt.Mnemonics.setLocalizedText(downloadButton, org.openide.util.NbBundle.getMessage(SampleProjectDownloadPanelVisual.class, "SampleProjectDownloadPanelVisual.downloadButton.text")); // NOI18N
         downloadButton.setActionCommand(org.openide.util.NbBundle.getMessage(SampleProjectDownloadPanelVisual.class, "SampleProjectDownloadPanelVisual.downloadButton.actionCommand")); // NOI18N
@@ -85,7 +86,11 @@ public class SampleProjectDownloadPanelVisual extends JPanel {
         });
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource(panel.getConfig().getIconPath()))); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(SampleProjectDownloadPanelVisual.class, "SampleProjectDownloadPanelVisual.jLabel1.text")); // NOI18N
+        jLabel1.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+
+        nameLabel.setFont(nameLabel.getFont().deriveFont(java.awt.Font.BOLD, 14f));
+        nameLabel.setText(panel.getConfig().getDefaultProjectName());
+        nameLabel.setVerticalAlignment(javax.swing.SwingConstants.TOP);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -94,31 +99,32 @@ public class SampleProjectDownloadPanelVisual extends JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nameLabel)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 307, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(statusField, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 313, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(99, 99, 99)
-                        .addComponent(downloadButton)))
-                .addContainerGap(14, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 307, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(statusField, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 313, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(downloadButton))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(71, 71, 71)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel1)
+                            .addComponent(nameLabel))
+                        .addGap(18, 18, 18)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(21, 21, 21)
+                        .addGap(18, 18, 18)
                         .addComponent(downloadButton)
                         .addGap(18, 18, 18)
-                        .addComponent(statusField, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(statusField, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jLabel1)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -146,6 +152,7 @@ public class SampleProjectDownloadPanelVisual extends JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     javax.swing.JButton downloadButton;
     javax.swing.JLabel jLabel1;
+    javax.swing.JLabel nameLabel;
     javax.swing.JScrollPane jScrollPane1;
     javax.swing.JTextArea jTextArea1;
     javax.swing.JTextField statusField;

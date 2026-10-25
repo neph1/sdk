@@ -26,7 +26,7 @@
                 <folder name="Sample projects">
                     <attr name="position" intvalue="20"/>
 
-                    <file name="MonkeyZone" url="MonkeyZone.zip">
+                    <file name="MonkeyZone" url="RollingTheMonkeyProject.zip">
                         <attr name="SystemFileSystem.icon" urlvalue="nbresloc:/com/jme3/gde/templates/monkeyzone/monkeyzone.png"/>
                         <attr name="displayName" bundlevalue="com.jme3.gde.templates.Bundle#Templates/Project/JME3/Samples/MonkeyZone"/>
                         <attr name="instantiatingIterator" methodvalue="com.jme3.gde.templates.monkeyzone.MonkeyZoneWizardIterator.createIterator"/>
@@ -34,7 +34,7 @@
                         <attr name="template" boolvalue="true"/>
                     </file>
 
-                    <file name="JaimesAscent" url="JaimesAscent.zip">
+                    <file name="JaimesAscent" url="RollingTheMonkeyProject.zip">
                         <attr name="SystemFileSystem.icon" urlvalue="nbresloc:/com/jme3/gde/templates/jaimesascent/jaimesascent.png"/>
                         <attr name="displayName" bundlevalue="com.jme3.gde.templates.Bundle#Templates/Project/JME3/Samples/JaimesAscent"/>
                         <attr name="instantiatingIterator" methodvalue="com.jme3.gde.templates.jaimesascent.JaimesAscentWizardIterator.createIterator"/>
