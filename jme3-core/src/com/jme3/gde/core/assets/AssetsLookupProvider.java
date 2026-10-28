@@ -45,6 +45,7 @@ import org.netbeans.spi.project.LookupProvider;
 import org.openide.util.lookup.Lookups;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
+import org.openide.util.Lookup;
 
 /**
  *
