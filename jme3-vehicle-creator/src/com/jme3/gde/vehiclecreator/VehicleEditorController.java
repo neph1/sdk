@@ -91,6 +91,8 @@ public class VehicleEditorController implements LookupListener, ActionListener {
     private final BinaryModelDataObject currentFileObject;
     private EditableVehicle vehicle;
     private Vector3f[] connectionLocations;
+    private Node sceneRootNode;
+    private Node sceneHost;
     private final List<Geometry> list = new LinkedList<>();
     private SceneToolController toolController;
     private final Node toolsNode;
@@ -203,8 +205,15 @@ public class VehicleEditorController implements LookupListener, ActionListener {
         testing = true;
         bulletState.getPhysicsSpace().addAll(toolsNode);
         if (vehicle != null) {
+            Node host = (sceneHost != null) ? sceneHost : vehicleNode.getParent();
+            // move the edited scene under the vehicle's chassis so the model
+            // is what gets driven, then attach the vehicle to the scene host
+            Node chassis = (Node) vehicle.getChassis();
+            if (sceneRootNode != null && sceneRootNode.getParent() != chassis) {
+                chassis.attachChild(sceneRootNode);
+            }
             GlobalAudio globalAudio = () -> 1f;
-            vehicle.addToWorld(new EditorWorld(vehicleNode), globalAudio);
+            vehicle.addToWorld(new EditorWorld(host), globalAudio);
             vehicle.startEngine();
         }
     }
@@ -224,6 +233,10 @@ public class VehicleEditorController implements LookupListener, ActionListener {
         testing = false;
         if (vehicle != null && vehicle.getWorld() != null) {
             vehicle.removeFromWorld();
+        }
+        // put the edited scene back where it was before the test drive
+        if (sceneRootNode != null && sceneHost != null && sceneRootNode.getParent() != sceneHost) {
+            sceneHost.attachChild(sceneRootNode);
         }
         bulletState.getPhysicsSpace().removeAll(toolsNode);
     }
@@ -357,6 +370,11 @@ public class VehicleEditorController implements LookupListener, ActionListener {
             return false;
         }
 
+        // remember where the edited scene lives; the vehicle itself stays
+        // detached from the scene graph until a test drive
+        sceneRootNode = rootNode;
+        sceneHost = rootNode.getParent();
+
         Vector3f halfExtents = new Vector3f(Vector3f.UNIT_XYZ);
         BoundingVolume worldBound = rootNode.getWorldBound();
         if (worldBound instanceof BoundingBox) {
@@ -385,7 +403,8 @@ public class VehicleEditorController implements LookupListener, ActionListener {
             wheelModels[j] = new SimpleWheelModel(0.7f, assetManager);
         }
 
-        vehicle = new EditableVehicle("editor vehicle", rootNode, shape, 200f, 0.1f,
+        Node chassis = new Node(rootNode.getName() + "-chassis");
+        vehicle = new EditableVehicle("editor vehicle", chassis, shape, 200f, 0.1f,
                 wheelModels, connectionLocations);
         return true;
     }
@@ -488,6 +507,12 @@ public class VehicleEditorController implements LookupListener, ActionListener {
     public void cleanup() {
         result.removeLookupListener(this);
         toolController.cleanup();
+        if (vehicle != null && vehicle.getWorld() != null) {
+            SceneApplication.getApplication().enqueue(() -> {
+                doStopVehicle();
+                return null;
+            });
+        }
     }
 
     @Override
@@ -600,8 +625,8 @@ public class VehicleEditorController implements LookupListener, ActionListener {
 
         private final Node parentNode;
 
-        EditorWorld(Node sceneRoot) {
-            this.parentNode = sceneRoot.getParent();
+        EditorWorld(Node parentNode) {
+            this.parentNode = parentNode;
         }
 
         @Override
