@@ -143,6 +143,13 @@ tasks.register('copyBaseLibs') {
                     from file
                     into "jme3-core-baselibs/release/modules/ext/"
                 }
+            } else if ((file.name.contains("MaVehicles") || file.name.contains("jme-ttf")) && !isSourceOrJavadoc(file.name)) {
+                // MaVehicles and jme-ttf reference jme3-core/Minie/Heart classes (e.g. jme3utilities.*),
+                // so they must live in the same module as those jars to be loadable by the module classloader
+                copy {
+                    from file
+                    into "jme3-core-baselibs/release/modules/ext/"
+                }
             } else if (!isSourceOrJavadoc(file.name)) {
                 copy {
                     from file
@@ -198,6 +205,12 @@ tasks.register('createBaseXml') {
                 }
             } else if (file.name.contains("Heart") && !isSourceOrJavadoc(file.name)) {
                 // Special handling of Minie, since it doesn't follow the name convention
+                if (!jmeJarFiles.contains(file)) {
+                    jmeJarFiles.add(file)
+                }
+            } else if ((file.name.contains("MaVehicles") || file.name.contains("jme-ttf")) && !isSourceOrJavadoc(file.name)) {
+                // MaVehicles and jme-ttf reference jme3-core/Minie/Heart classes (e.g. jme3utilities.*),
+                // so they must live in the same module as those jars to be loadable by the module classloader
                 if (!jmeJarFiles.contains(file)) {
                     jmeJarFiles.add(file)
                 }
