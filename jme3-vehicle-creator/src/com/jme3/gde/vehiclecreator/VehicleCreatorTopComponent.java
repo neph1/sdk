@@ -14,8 +14,6 @@ import com.jme3.gde.core.sceneexplorer.nodes.JmeNode;
 import com.jme3.gde.core.sceneexplorer.nodes.NodeUtility;
 import com.jme3.gde.core.sceneviewer.SceneViewerTopComponent;
 import com.jme3.light.DirectionalLight;
-import com.jme3.math.FastMath;
-import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
@@ -148,7 +146,7 @@ public final class VehicleCreatorTopComponent extends TopComponent implements Sc
         org.openide.awt.Mnemonics.setLocalizedText(jLabel4, org.openide.util.NbBundle.getMessage(VehicleCreatorTopComponent.class, "VehicleCreatorTopComponent.jLabel4.text")); // NOI18N
         jToolBar10.add(jLabel4);
 
-        motorForceSpinner.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(800.0f), null, null, Float.valueOf(1.0f)));
+        motorForceSpinner.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(1.0f), Float.valueOf(0.0f), Float.valueOf(1.0f), Float.valueOf(0.05f)));
         motorForceSpinner.setToolTipText(org.openide.util.NbBundle.getMessage(VehicleCreatorTopComponent.class, "VehicleCreatorTopComponent.motorForceSpinner.toolTipText")); // NOI18N
         motorForceSpinner.setPreferredSize(new java.awt.Dimension(80, 28));
         motorForceSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
@@ -158,7 +156,7 @@ public final class VehicleCreatorTopComponent extends TopComponent implements Sc
         });
         jToolBar10.add(motorForceSpinner);
 
-        brakeForceSpinner.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(40.0f), null, null, Float.valueOf(1.0f)));
+        brakeForceSpinner.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(0.6f), Float.valueOf(0.0f), Float.valueOf(1.0f), Float.valueOf(0.05f)));
         brakeForceSpinner.setToolTipText(org.openide.util.NbBundle.getMessage(VehicleCreatorTopComponent.class, "VehicleCreatorTopComponent.brakeForceSpinner.toolTipText")); // NOI18N
         brakeForceSpinner.setPreferredSize(new java.awt.Dimension(80, 28));
         brakeForceSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
@@ -844,27 +842,17 @@ public final class VehicleCreatorTopComponent extends TopComponent implements Sc
         settings.setFriction((Float) frictionSpinner.getValue());
         settings.setMaxForce((Float) forceSpinner.getValue());
         settings.setRestLength((Float) restSpinner.getValue());
+        settings.setRollInfluence((float) rollSlider.getValue() / 100.0f);
         if (boundingRadioButton.isSelected()) {
             settings.setBoundingScale((Float) boundingSpinner.getValue());
         } else {
             settings.setBoundingScale(0);
             settings.setRadius((Float) fixedSpinner.getValue());
         }
-        float stiffness = stiffnessSlider.getValue();
-        float compValue = (float) compressionSlider.getValue() / 100.0f;
-        float dampValue = (float) releaseSlider.getValue() / 100.0f;
-        settings.setCompression(compValue * 2.0f * FastMath.sqrt(stiffness));
-        settings.setRelease(dampValue * 2.0f * FastMath.sqrt(stiffness));
-        settings.setStiffness(stiffness);
+        settings.setStiffness(stiffnessSlider.getValue());
+        settings.setCompression((float) compressionSlider.getValue() / 100.0f);
+        settings.setRelease((float) releaseSlider.getValue() / 100.0f);
         settings.setFrontWheel(frontCheckBox.isSelected());
-        if ("-Z".equals(axisSpinner.getValue())) {
-            settings.setAxle(new Vector3f(1, 0, 0));
-        } else if ("X".equals(axisSpinner.getValue())) {
-            settings.setAxle(new Vector3f(0, 0, 1));
-        } else if ("-X".equals(axisSpinner.getValue())) {
-            settings.setAxle(new Vector3f(0, 0, -1));
-        }
-        settings.setCreateNode(createNodeCheckBox.isSelected());
         return settings;
     }
 
