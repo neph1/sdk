@@ -59,7 +59,8 @@ public class SimpleWheelModel extends WheelModel {
     public SimpleWheelModel(float diameter, AssetManager assetManager) {
         super(diameter);
         Cylinder cylinder = new Cylinder(6, 16, 0.5f, 0.3f, true);
-        Geometry geometry = new Geometry("editor wheel", cylinder);
+        // WheelSpinState looks up the wheel visual by the name "wheel"
+        Geometry geometry = new Geometry("wheel", cylinder);
         geometry.rotate(0f, 0f, FastMath.HALF_PI); // align the axle with the X axis
         Material material = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         material.setColor("Color", ColorRGBA.DarkGray);
@@ -76,6 +77,8 @@ public class SimpleWheelModel extends WheelModel {
      */
     public SimpleWheelModel(float diameter, Spatial wheelSpatial) {
         super(diameter);
+        // WheelSpinState looks up the wheel visual by the name "wheel"
+        wheelSpatial.setName("wheel");
         if (wheelSpatial.getWorldBound() instanceof BoundingBox) {
             BoundingBox bound = (BoundingBox) wheelSpatial.getWorldBound();
             float boundRadius = Math.max(bound.getYExtent(), bound.getZExtent());

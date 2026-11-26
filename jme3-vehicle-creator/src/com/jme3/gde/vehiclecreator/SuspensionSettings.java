@@ -149,10 +149,12 @@ public class SuspensionSettings {
         GearBox gearBox = vehicle.getGearBox();
         int numGears = Math.min(gearBox.countForwardGears(), gearMaxKph.length);
         for (int i = 0; i < numGears; ++i) {
-            gearBox.getGear(i + 1).setMaxKph(gearMaxKph[i]);
+            // upshift at gearMaxKph, redline somewhat above it, downshift at the previous upshift
+            float downshift = (i == 0) ? 0f : gearMaxKph[i - 1];
+            gearBox.getGear(i + 1).setMinMaxRedKph(downshift, gearMaxKph[i], gearMaxKph[i] * 1.25f);
         }
         if (gearBox.countReverseGears() > 0) {
-            gearBox.getGear(-1).setMaxKph(reverseMaxKph);
+            gearBox.getGear(-1).setMinMaxRedKph(reverseMaxKph * 1.25f, reverseMaxKph, reverseMaxKph * 0.75f);
         }
     }
 

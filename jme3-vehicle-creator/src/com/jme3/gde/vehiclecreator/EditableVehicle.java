@@ -73,11 +73,11 @@ public class EditableVehicle extends Vehicle {
         setEngine(new SimpleEngine("editor engine", 80_000f, 800f, 6000f));
 
         GearBox gearBox = new GearBox(4, 1);
-        gearBox.getGear(1).setMaxKph(30f);
-        gearBox.getGear(2).setMaxKph(60f);
-        gearBox.getGear(3).setMaxKph(100f);
-        gearBox.getGear(4).setMaxKph(150f);
-        gearBox.getGear(-1).setMaxKph(-20f);
+        gearBox.getGear(1).setMinMaxRedKph(0f, 30f, 40f);
+        gearBox.getGear(2).setMinMaxRedKph(25f, 60f, 80f);
+        gearBox.getGear(3).setMinMaxRedKph(55f, 100f, 130f);
+        gearBox.getGear(4).setMinMaxRedKph(95f, 150f, 190f);
+        gearBox.getGear(-1).setMinMaxRedKph(-25f, -20f, -30f);
         setGearBox(gearBox);
 
         for (int wheelIndex = 0; wheelIndex < NUM_WHEELS; ++wheelIndex) {

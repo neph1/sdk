@@ -33,9 +33,12 @@ package com.jme3.gde.vehiclecreator;
 
 import com.jayfella.jme.vehicle.GlobalAudio;
 import com.jayfella.jme.vehicle.Steering;
+import com.jayfella.jme.vehicle.TireSmokeEmitter;
 import com.jayfella.jme.vehicle.VehicleWorld;
 import com.jayfella.jme.vehicle.WheelModel;
 import com.jayfella.jme.vehicle.part.Wheel;
+import com.jayfella.jme.vehicle.skid.SkidMarksState;
+import com.jme3.app.state.AppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.DesktopAssetManager;
@@ -627,9 +630,12 @@ public class VehicleEditorController implements LookupListener, ActionListener {
     private class EditorWorld implements VehicleWorld {
 
         private final Node parentNode;
+        private final AppStateManager stateManager;
 
         EditorWorld(Node parentNode) {
             this.parentNode = parentNode;
+            this.stateManager = new EditorAppStateManager(
+                    SceneApplication.getApplication().getStateManager());
         }
 
         @Override
@@ -659,12 +665,45 @@ public class VehicleEditorController implements LookupListener, ActionListener {
 
         @Override
         public AppStateManager getStateManager() {
-            return SceneApplication.getApplication().getStateManager();
+            return stateManager;
         }
 
         @Override
         public void locateDrop(Vector3f storeResult) {
             storeResult.set(0f, 5f, 0f);
+        }
+    }
+
+    /**
+     * AppStateManager that delegates to the preview's real state manager but
+     * never attaches the cosmetic vehicle states that are incompatible with
+     * the SDK's SceneApplication: TireSmokeEmitter casts the app to
+     * SimpleApplication, and SkidMarksState needs a DecalManager plus the
+     * SkidMark material, none of which the preview provides.
+     */
+    private static class EditorAppStateManager extends AppStateManager {
+
+        private final AppStateManager delegate;
+
+        EditorAppStateManager(AppStateManager delegate) {
+            super(SceneApplication.getApplication());
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean attach(AppState state) {
+            if (state instanceof TireSmokeEmitter || state instanceof SkidMarksState) {
+                return false;
+            }
+            return delegate.attach(state);
+        }
+
+        @Override
+        public boolean detach(AppState state) {
+            if (state instanceof TireSmokeEmitter || state instanceof SkidMarksState) {
+                return false;
+            }
+            return delegate.detach(state);
         }
     }
 }
