@@ -33,6 +33,7 @@ package com.jme3.gde.vehiclecreator;
 
 import com.jme3.gde.core.scene.controller.AbstractCameraController;
 import com.jme3.input.InputManager;
+import com.jme3.input.event.KeyInputEvent;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Spatial;
 
@@ -43,6 +44,7 @@ import com.jme3.scene.Spatial;
 public class VehicleCreatorCameraController extends AbstractCameraController {
 
     private Spatial vehicle;
+    private VehicleEditorController editorController;
 
     public VehicleCreatorCameraController(Camera cam, InputManager inputManager) {
         super(cam, inputManager);
@@ -65,6 +67,26 @@ public class VehicleCreatorCameraController extends AbstractCameraController {
      */
     public void setVehicle(Spatial vehicle) {
         this.vehicle = vehicle;
+    }
+
+    /**
+     * @param editorController the controller to forward test-drive keys to
+     */
+    public void setEditorController(VehicleEditorController editorController) {
+        this.editorController = editorController;
+    }
+
+    /**
+     * The scene viewer forwards keyboard events to the active camera
+     * controller only, bypassing jME's InputManager, so the driving keys
+     * are handed to the vehicle editor here.
+     */
+    @Override
+    public void onKeyEvent(KeyInputEvent kie) {
+        super.onKeyEvent(kie);
+        if (editorController != null) {
+            editorController.forwardJmeTestKey(kie.getKeyCode(), kie.isPressed());
+        }
     }
 
     @Override
