@@ -51,6 +51,11 @@ import com.jme3.scene.shape.Cylinder;
 public class SimpleWheelModel extends WheelModel {
 
     /**
+     * diameter of the generated cylinder wheels (in local units)
+     */
+    public static final float WHEEL_DIAMETER = 0.7f;
+
+    /**
      * Create a wheel model from a generated cylinder.
      *
      * @param diameter the desired wheel diameter (in local units, &gt;0)

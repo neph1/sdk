@@ -15,6 +15,8 @@ import com.jme3.gde.core.sceneexplorer.nodes.NodeUtility;
 import com.jme3.gde.core.sceneviewer.SceneViewerTopComponent;
 import com.jme3.light.DirectionalLight;
 import com.jme3.scene.Node;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 import org.openide.util.NbBundle;
@@ -49,6 +51,34 @@ public final class VehicleCreatorTopComponent extends TopComponent implements Sc
         setName(NbBundle.getMessage(VehicleCreatorTopComponent.class, "CTL_VehicleCreatorTopComponent"));
         setToolTipText(NbBundle.getMessage(VehicleCreatorTopComponent.class, "HINT_VehicleCreatorTopComponent"));
         setIcon(ImageUtilities.loadImage(ICON_PATH, true));
+
+        // The embedded preview canvas is not focusable, so jME's
+        // InputManager never sees keyboard input; forward the test-drive
+        // keys from Swing when this window has the focus. (When the scene
+        // viewer has the focus, its forwarding reaches the camera
+        // controller, which also hands the keys to the editor.)
+        setFocusable(true);
+        addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent evt) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent evt) {
+                VehicleEditorController controller = editorController;
+                if (controller != null) {
+                    controller.forwardAwtTestKey(evt.getKeyCode(), true);
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent evt) {
+                VehicleEditorController controller = editorController;
+                if (controller != null) {
+                    controller.forwardAwtTestKey(evt.getKeyCode(), false);
+                }
+            }
+        });
 
     }
 
@@ -897,6 +927,7 @@ public final class VehicleCreatorTopComponent extends TopComponent implements Sc
             editorController = newEditorController;
             cameraController = new VehicleCreatorCameraController(SceneApplication.getApplication().getCamera(), SceneApplication.getApplication().getInputManager());
             cameraController.setMaster(this);
+            cameraController.setEditorController(editorController);
             cameraController.enable();
             cameraController.setVehicle(request.getRootNode());
             setLoadedScene(currentRequest.getDataObject().getNodeDelegate(), true);

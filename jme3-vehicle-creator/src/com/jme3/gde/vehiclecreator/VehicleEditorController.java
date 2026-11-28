@@ -60,16 +60,21 @@ import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.DirectionalLight;
+import com.jme3.material.Material;
 import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
+import com.jme3.math.Transform;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Box;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.awt.event.KeyEvent;
 import jme3utilities.DecalManager;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
@@ -103,6 +108,19 @@ public class VehicleEditorController implements LookupListener, ActionListener {
     private boolean testing = false;
     private float motorForce = 1f; // accelerate signal strength, 0..1
     private float brakeForce = 1f; // main brake signal strength, 0..1
+    /**
+     * vehicle pose (in world coordinates) captured when the last test drive
+     * started, or null if none was captured
+     */
+    private Transform testStartWorld;
+    /**
+     * vehicle node's local transform when the last test drive started
+     */
+    private Transform testStartLocal;
+    /**
+     * wheel-node local transforms when the last test drive started
+     */
+    private Transform[] testStartWheelLocals;
 
     public VehicleEditorController(JmeSpatial jmeRootNode, BinaryModelDataObject currentFileObject) {
         this.jmeRootNode = jmeRootNode;
@@ -213,12 +231,70 @@ public class VehicleEditorController implements LookupListener, ActionListener {
         }
         bulletState.getPhysicsSpace().addAll(toolsNode);
         if (vehicle != null) {
-            // the vehicle node is already attached to the scene node for
-            // visibility; addToWorld re-attaches (no-op) and adds physics
+            // the test drive starts wherever the vehicle currently sits in
+            // the scene; capture that pose so the drive can be reset to it
+            // (see restoreTestStart and the reset key)
+            captureTestStart();
             GlobalAudio globalAudio = () -> 1f;
-            vehicle.addToWorld(new EditorWorld(vehicleNode), globalAudio);
+            vehicle.addToWorld(new EditorWorld(vehicleNode, testStartWorld), globalAudio);
+            // addToWorld warped the vehicle to the drop location; MaVehicles
+            // derives it with a downward ray test that moves the vehicle
+            // far away when nothing is below the drop point (off the
+            // track), so place it directly at the captured pose instead
+            //vehicle.warpAllBodies(testStartWorld.getTranslation(),
+            //        yawAngle(testStartWorld.getRotation()));
             vehicle.startEngine();
         }
+    }
+
+    /**
+     * Record the vehicle's current pose, so that the test drive can start
+     * from it and be reset to it.
+     */
+    private void captureTestStart() {
+        Node node = vehicle.getNode();
+        // refresh the cached world transform before reading it
+        node.updateGeometricState();
+        testStartWorld = node.getWorldTransform().clone();
+        testStartLocal = node.getLocalTransform().clone();
+        int numWheels = vehicle.countWheels();
+        testStartWheelLocals = new Transform[numWheels];
+        for (int i = 0; i < numWheels; ++i) {
+            Spatial wheelSpatial = vehicle.getWheel(i).getVehicleWheel().getWheelSpatial();
+            testStartWheelLocals[i] = wheelSpatial.getLocalTransform().clone();
+        }
+    }
+
+    /**
+     * Return the vehicle to the pose recorded by captureTestStart().
+     */
+    private void restoreTestStart() {
+        if (testStartWorld == null) {
+            return;
+        }
+        // move the physics body and zero its velocities, so neither the next
+        // test drive nor a saved scene inherits the driven pose
+        vehicle.warpAllBodies(testStartWorld.getTranslation(),
+                yawAngle(testStartWorld.getRotation()));
+        // restore the visuals; the physics control leaves them alone while
+        // the body isn't simulated
+        vehicle.getNode().setLocalTransform(testStartLocal);
+        int numWheels = vehicle.countWheels();
+        for (int i = 0; i < numWheels; ++i) {
+            vehicle.getWheel(i).getVehicleWheel().getWheelSpatial()
+                    .setLocalTransform(testStartWheelLocals[i]);
+        }
+    }
+
+    /**
+     * Extract the yaw angle (in radians) from a rotation.
+     *
+     * @param rotation the rotation to convert (not null, unaffected)
+     * @return the rotation about the world Y axis
+     */
+    private static float yawAngle(Quaternion rotation) {
+        float[] angles = rotation.toAngles(null);
+        return angles[1];
     }
 
     public void stopVehicle() {
@@ -236,6 +312,8 @@ public class VehicleEditorController implements LookupListener, ActionListener {
         testing = false;
         if (vehicle != null && vehicle.getWorld() != null) {
             vehicle.removeFromWorld();
+            // reset the vehicle to the pose it had when testing started
+            restoreTestStart();
             // keep the vehicle visible in the scene, physics is now off
             final Node rootNode = jmeRootNode.getLookup().lookup(Node.class);
             if (rootNode != null) {
@@ -386,15 +464,23 @@ public class VehicleEditorController implements LookupListener, ActionListener {
         BoxCollisionShape shape = new BoxCollisionShape(halfExtents);
 
         // suspension connection locations at the four corners, in chassis
-        // coordinates; the first two (front, +Z) are the steered wheels
+        // coordinates; the first two (front, +Z) are the steered wheels.
+        // The connections must sit far enough down the bounding box that the
+        // wheels reach BELOW the chassis collision box, otherwise the
+        // vehicle settles on the box and the wheels spin without traction.
+        // Wheel reach below the connection = radius + rest length, where the
+        // rest length must match MaVehicles' Vehicle.addWheel (0.2).
         Vector3f center = worldBound.getCenter(new Vector3f());
+        float wheelRadius = SimpleWheelModel.WHEEL_DIAMETER / 2f;
+        float restLength = 0.2f; // must match Vehicle.addWheel()
+        float connectionY = center.y - halfExtents.y + wheelRadius + restLength - 0.05f;
         connectionLocations = new Vector3f[EditableVehicle.NUM_WHEELS];
         int i = 0;
         for (float x : new float[]{-1f, 1f}) {
             for (float z : new float[]{1f, -1f}) {
                 Vector3f world = new Vector3f(
                         center.x + x * halfExtents.x * 0.9f,
-                        center.y,
+                        connectionY,
                         center.z + z * halfExtents.z * 0.9f);
                 connectionLocations[i++] = rootNode.worldToLocal(world, new Vector3f());
             }
@@ -403,12 +489,16 @@ public class VehicleEditorController implements LookupListener, ActionListener {
         AssetManager assetManager = SceneApplication.getApplication().getAssetManager();
         WheelModel[] wheelModels = new WheelModel[EditableVehicle.NUM_WHEELS];
         for (int j = 0; j < wheelModels.length; ++j) {
-            wheelModels[j] = new SimpleWheelModel(0.7f, assetManager);
+            wheelModels[j] = new SimpleWheelModel(SimpleWheelModel.WHEEL_DIAMETER, assetManager);
         }
 
         // the vehicle (chassis + wheels) is attached to the scene node right
         // away so it is visible; physics stays off until "test vehicle"
         Node chassis = new Node(rootNode.getName() + "-chassis");
+        Geometry chassi = new Geometry("Chassi", new Box(0.5f, 0.5f, 1f));
+        Material m = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        chassi.setMaterial(m);
+        chassis.attachChild(chassi);
         vehicle = new EditableVehicle("editor vehicle", chassis, shape, 200f, 0.1f,
                 wheelModels, connectionLocations);
         rootNode.attachChild(vehicle.getNode());
@@ -556,6 +646,94 @@ public class VehicleEditorController implements LookupListener, ActionListener {
 
     float steeringValue = 0;
 
+    /**
+     * Forward an AWT key press/release to the test drive. The embedded
+     * preview canvas is not focusable, so jME's InputManager never sees
+     * keyboard events; the editor forwards them itself (see
+     * VehicleCreatorTopComponent and VehicleCreatorCameraController).
+     *
+     * @param awtKeyCode a java.awt.event.KeyEvent key code
+     * @param pressed true while the key is down, false on release
+     * @return true if the key drives the test vehicle, otherwise false
+     */
+    public boolean forwardAwtTestKey(int awtKeyCode, boolean pressed) {
+        String binding;
+        switch (awtKeyCode) {
+            case KeyEvent.VK_A:
+                binding = "VehicleEditor_Left";
+                break;
+            case KeyEvent.VK_D:
+                binding = "VehicleEditor_Right";
+                break;
+            case KeyEvent.VK_W:
+                binding = "VehicleEditor_Up";
+                break;
+            case KeyEvent.VK_S:
+                binding = "VehicleEditor_Down";
+                break;
+            case KeyEvent.VK_SPACE:
+                binding = "VehicleEditor_Space";
+                break;
+            case KeyEvent.VK_ENTER:
+                binding = "VehicleEditor_Reset";
+                break;
+            default:
+                binding = null;
+                break;
+        }
+        return forwardBinding(binding, pressed);
+    }
+
+    /**
+     * Forward a jME key press/release to the test drive, like
+     * forwardAwtTestKey but for com.jme3.input event codes.
+     *
+     * @param jmeKeyCode a com.jme3.input.KeyInput key code
+     * @param pressed true while the key is down, false on release
+     * @return true if the key drives the test vehicle, otherwise false
+     */
+    public boolean forwardJmeTestKey(int jmeKeyCode, boolean pressed) {
+        String binding;
+        switch (jmeKeyCode) {
+            case KeyInput.KEY_A:
+                binding = "VehicleEditor_Left";
+                break;
+            case KeyInput.KEY_D:
+                binding = "VehicleEditor_Right";
+                break;
+            case KeyInput.KEY_W:
+                binding = "VehicleEditor_Up";
+                break;
+            case KeyInput.KEY_S:
+                binding = "VehicleEditor_Down";
+                break;
+            case KeyInput.KEY_SPACE:
+                binding = "VehicleEditor_Space";
+                break;
+            case KeyInput.KEY_RETURN:
+                binding = "VehicleEditor_Reset";
+                break;
+            default:
+                binding = null;
+                break;
+        }
+        return forwardBinding(binding, pressed);
+    }
+
+    /**
+     * Enqueue a test-drive action, like the InputManager would deliver it.
+     */
+    private boolean forwardBinding(String binding, boolean pressed) {
+        if (binding == null) {
+            return false;
+        }
+        SceneApplication.getApplication().enqueue(() -> {
+            onAction(binding, pressed, 0f);
+            return null;
+        });
+        return true;
+    }
+
     @Override
     public void onAction(String binding, boolean value, float f) {
         if (!testing || vehicle == null || vehicle.getWorld() == null) {
@@ -586,8 +764,11 @@ public class VehicleEditorController implements LookupListener, ActionListener {
                 vehicle.setBrakeSignals(value ? brakeForce : 0f, 0f);
                 break;
             case "VehicleEditor_Reset":
-                if (value) {
-                    vehicle.warpToStart();
+                if (value && testStartWorld != null) {
+                    // warpToStart() would repeat the drop-point ray test;
+                    // reset directly to the captured starting pose instead
+                    vehicle.warpAllBodies(testStartWorld.getTranslation(),
+                            yawAngle(testStartWorld.getRotation()));
                 }
                 break;
             default:
@@ -631,16 +812,22 @@ public class VehicleEditorController implements LookupListener, ActionListener {
 
         private final Node parentNode;
         private final AppStateManager stateManager;
+        /**
+         * vehicle pose (in world coordinates) captured when testing started;
+         * doubles as the drop configuration should MaVehicles ever warp
+         */
+        private final Transform startTransform;
 
-        EditorWorld(Node parentNode) {
+        EditorWorld(Node parentNode, Transform startTransform) {
             this.parentNode = parentNode;
+            this.startTransform = startTransform;
             this.stateManager = new EditorAppStateManager(
                     SceneApplication.getApplication().getStateManager());
         }
 
         @Override
         public float dropYRotation() {
-            return 0f;
+            return yawAngle(startTransform.getRotation());
         }
 
         @Override
@@ -670,7 +857,7 @@ public class VehicleEditorController implements LookupListener, ActionListener {
 
         @Override
         public void locateDrop(Vector3f storeResult) {
-            storeResult.set(0f, 5f, 0f);
+            storeResult.set(startTransform.getTranslation());
         }
     }
 
