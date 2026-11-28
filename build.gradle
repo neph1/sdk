@@ -69,7 +69,7 @@ dependencies {
     optlibs dep("org.jmonkeyengine:jme3-android-native:$jmeVersion-$jmeVersionTag", true, true)
     optlibs dep("org.jmonkeyengine:jme3-lwjgl3:$jmeVersion-$jmeVersionTag", true, true)
     optlibs dep("com.github.stephengold:Wes:0.8.3", true, true)
-    testdatalibs dep("org.jmonkeyengine:jme3-testdata:$jmeVersion-$jmeVersionTag", false, false)
+    testdatalibs dep("org.jmonkeyengine:jme3-testdata:2026-10-31-3", false, false)
     examplelibs dep("org.jmonkeyengine:jme3-examples:$jmeVersion-$jmeVersionTag", false, true)
 }
 
